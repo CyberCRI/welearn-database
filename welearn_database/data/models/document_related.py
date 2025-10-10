@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
 from uuid import UUID
+from zlib import adler32
 
 from sqlalchemy import types, ForeignKey, UniqueConstraint, func, LargeBinary
 from sqlalchemy.dialects.postgresql import TIMESTAMP, ENUM
@@ -48,7 +49,7 @@ class WeLearnDocument(Base):
     _description: Mapped[str]
     _full_content: Mapped[str]
     details: Mapped[dict[str, Any] | None]
-    trace: Mapped[int | None] = mapped_column(types.BIGINT)
+    _trace: Mapped[int | None] = mapped_column(types.BIGINT)
     corpus_id: Mapped[UUID] = mapped_column(
         types.Uuid,
         ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.corpus.id"),
@@ -117,6 +118,11 @@ class WeLearnDocument(Base):
     @description.setter
     def description(self, description):
         self._description = clean_text(description)
+
+    @hybrid_property
+    def trace(self):
+        return adler32(bytes(self.full_content, "utf-8"))
+
 
 class ProcessState(Base):
     """
