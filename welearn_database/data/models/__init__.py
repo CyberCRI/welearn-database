@@ -12,3 +12,7 @@ class Base(DeclarativeBase):
         datetime: TIMESTAMP(timezone=False),
         float: types.NUMERIC,
     }
+
+from .document_related import *
+from .corpus_related import *
+from .user_related import *

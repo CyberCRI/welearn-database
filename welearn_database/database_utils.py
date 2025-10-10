@@ -32,22 +32,3 @@ def create_sqlalchemy_engine():
     )
     engine = create_engine(url_object)
     return engine
-
-
-def create_specific_batches_quantity(
-    to_batch_list: List[Any],
-    qty_batch: int,
-) -> List[List[Any]]:
-    logger.info("Create batch")
-    ret = []
-    quantity_items_per_batch = math.ceil(len(to_batch_list) / qty_batch)
-
-    logger.info("Batch quantity : %s", qty_batch)
-    for i in range(qty_batch):
-        to_write_batch = to_batch_list[
-            i * quantity_items_per_batch : (i + 1) * quantity_items_per_batch
-        ]
-        if to_write_batch:
-            ret.append(to_write_batch)
-    logger.info("Batch created")
-    return ret
