@@ -5,14 +5,6 @@ from welearn_database.exceptions import InvalidURLScheme
 
 
 class TestWeLearnDocument(TestCase):
-    def setUp(self):
-        pass
-        # self.engine = create_engine("sqlite://")
-        # s_maker = sessionmaker(self.engine)
-        # handle_schema_with_sqlite(self.engine)
-        # self.test_session = s_maker()
-        # Base.metadata.create_all(self.test_session.get_bind())
-
     def test_validate_url(self):
         test_doc = WeLearnDocument(
             title="Test Document",
