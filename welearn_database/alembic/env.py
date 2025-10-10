@@ -1,9 +1,7 @@
-import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool, text
-
 from alembic import context
+
 from welearn_database.database_utils import create_sqlalchemy_engine
 
 EXCLUDE_SCHEMAS_NAMES = ["public"]
