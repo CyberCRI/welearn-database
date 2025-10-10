@@ -1,19 +1,38 @@
 from datetime import datetime
 from typing import Any
+from urllib.parse import urlparse
 from uuid import UUID
 
 from sqlalchemy import types, ForeignKey, UniqueConstraint, func, LargeBinary
 from sqlalchemy.dialects.postgresql import TIMESTAMP, ENUM
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import mapped_column, Mapped, relationship, validates
 
+from welearn_database.modules.text_cleaning import clean_text
 from . import Base
 from welearn_database.data.enumeration import DbSchemaEnum, Step, Counter
 from welearn_database.data.models.corpus_related import Corpus, NClassifierModel, BiClassifierModel, EmbeddingModel
+from ...exceptions import InvalidURLScheme
 
 schema_name = DbSchemaEnum.DOCUMENT_RELATED.value
 
 
 class WeLearnDocument(Base):
+    """
+    This class represents a document in the WeLearn system.
+    :cvar id: The unique identifier of the document.
+    :cvar url: The URL of the document.
+    :cvar title: The title of the document.
+    :cvar lang: The language of the document.
+    :cvar description: A brief description of the document.
+    :cvar full_content: The full content of the document.
+    :cvar details: Additional details about the document in JSON format.
+    :cvar trace: An integer trace value for versioning or tracking changes.
+    :cvar corpus_id: The database identifier of the corpus to which the document belongs.
+    :cvar created_at: The timestamp when the document was created.
+    :cvar updated_at: The timestamp when the document was last updated.
+    :cvar corpus: The relationship to the Corpus object.
+    """
     __tablename__ = "welearn_document"
     __table_args__ = (
         UniqueConstraint("url", name="welearn_document_url_key"),
@@ -26,8 +45,8 @@ class WeLearnDocument(Base):
     url: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str | None]
     lang: Mapped[str | None]
-    description: Mapped[str | None]
-    full_content: Mapped[str | None]
+    _description: Mapped[str | None]
+    _full_content: Mapped[str | None]
     details: Mapped[dict[str, Any] | None]
     trace: Mapped[int | None] = mapped_column(types.BIGINT)
     corpus_id: Mapped[UUID] = mapped_column(
@@ -51,8 +70,62 @@ class WeLearnDocument(Base):
 
     corpus: Mapped["Corpus"] = relationship("Corpus")
 
+    @validates("url")
+    def validate_url(self, key, value):
+        """
+        Validate the URL to ensure it has an accepted scheme (http or https).
+        :param key:  The name of the attribute being validated.
+        :param value:  The value of the URL to validate.
+        :return:  The validated URL if it is valid.
+        :raises InvalidURLScheme: If the URL scheme is not accepted or the URL is malformed
+        """
+        parsed_url = urlparse(url=value)
+        accepted_scheme = ["https", "http"]
+        if parsed_url.scheme not in accepted_scheme or len(parsed_url.netloc) == 0:
+            raise InvalidURLScheme(
+                "There is an error on the URL form : %s", value
+            )
+        return value
+
+    @validates("full_content")
+    def validate_full_content(self, key, value):
+        """
+        Validate the full content to ensure it meets the minimum length requirement.
+        :param key:  The name of the attribute being validated.
+        :param value:  The value of the full content to validate.
+        :return:  The validated full content if it meets the length requirement.
+        :raises ValueError: If the full content is too short.
+        """
+        if not value or len(value) < 25:
+            raise ValueError(f"Content is too short : {len(value)}")
+        return value
+
+    @hybrid_property
+    def full_content(self):
+        return self._full_content
+
+    @full_content.setter
+    def full_content(self, full_content):
+        self._full_content = clean_text(full_content)
+
+    @hybrid_property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, description):
+        self._description = clean_text(description)
 
 class ProcessState(Base):
+    """
+    This class represents the state of a document processing step in the WeLearn system.
+    :cvar id: The unique identifier of the process state.
+    :cvar document_id: The identifier of the associated document.
+    :cvar title: The title of the processing step, represented as an enumeration.
+    :cvar created_at: The timestamp when the process state was created.
+    :cvar operation_order: A bigint representing the order of operations for the process state.
+    :cvar document: The relationship to the WeLearnDocument object.
+    """
     __tablename__ = "process_state"
     __table_args__ = {"schema": DbSchemaEnum.DOCUMENT_RELATED.value}
 
