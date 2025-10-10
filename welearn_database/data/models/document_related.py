@@ -9,9 +9,9 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import mapped_column, Mapped, relationship, validates
 
 from welearn_database.modules.text_cleaning import clean_text
-from . import Base
 from welearn_database.data.enumeration import DbSchemaEnum, Step, Counter
 from welearn_database.data.models.corpus_related import Corpus, NClassifierModel, BiClassifierModel, EmbeddingModel
+from . import Base
 from ...exceptions import InvalidURLScheme
 
 schema_name = DbSchemaEnum.DOCUMENT_RELATED.value
@@ -45,8 +45,8 @@ class WeLearnDocument(Base):
     url: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str | None]
     lang: Mapped[str | None]
-    _description: Mapped[str | None]
-    _full_content: Mapped[str | None]
+    _description: Mapped[str]
+    _full_content: Mapped[str]
     details: Mapped[dict[str, Any] | None]
     trace: Mapped[int | None] = mapped_column(types.BIGINT)
     corpus_id: Mapped[UUID] = mapped_column(
@@ -80,14 +80,14 @@ class WeLearnDocument(Base):
         :raises InvalidURLScheme: If the URL scheme is not accepted or the URL is malformed
         """
         parsed_url = urlparse(url=value)
-        accepted_scheme = ["https", "http"]
+        accepted_scheme = ["https"]
         if parsed_url.scheme not in accepted_scheme or len(parsed_url.netloc) == 0:
             raise InvalidURLScheme(
                 "There is an error on the URL form : %s", value
             )
         return value
 
-    @validates("full_content")
+    @validates("_full_content")
     def validate_full_content(self, key, value):
         """
         Validate the full content to ensure it meets the minimum length requirement.
@@ -96,7 +96,9 @@ class WeLearnDocument(Base):
         :return:  The validated full content if it meets the length requirement.
         :raises ValueError: If the full content is too short.
         """
-        if not value or len(value) < 25:
+        if not value:
+            raise ValueError("Full content cannot be empty or None")
+        if len(value) < 25:
             raise ValueError(f"Content is too short : {len(value)}")
         return value
 
