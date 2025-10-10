@@ -1,6 +1,7 @@
 from logging.config import fileConfig
 
 from alembic import context
+from dotenv import load_dotenv
 
 from welearn_database.database_utils import create_sqlalchemy_engine
 
@@ -71,6 +72,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    load_dotenv()
     connectable = create_sqlalchemy_engine()
 
     with connectable.connect() as connection:
