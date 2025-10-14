@@ -1,5 +1,10 @@
 name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   test:
     name: Run tests
@@ -94,9 +99,9 @@ jobs:
       uses: pypa/gh-action-pypi-publish@release/v1
 
   publish-to-testpypi:
-    name: Publish to TestPyPI
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/')
-    needs: build
+    name: Publish Python 🐍 distribution 📦 to TestPyPI
+    needs:
+    - build
     runs-on: ubuntu-latest
 
     environment:
@@ -104,18 +109,17 @@ jobs:
       url: https://test.pypi.org/p/welearn-database
 
     permissions:
-      id-token: write  # OIDC pour Trusted Publishing
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
 
     steps:
-      - name: Download dists
-        uses: actions/download-artifact@v4
-        with:
-          name: python-package-distributions
-          path: dist/
-
-      - name: Publish 📦 to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          skip-existing: true
-          verbose: true
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+    - name: Publish distribution 📦 to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+        skip-existing: true
+        verbose: true
