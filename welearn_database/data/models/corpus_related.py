@@ -38,7 +38,7 @@ class Category(Base):
 
 class EmbeddingModel(Base):
     __tablename__ = "embedding_model"
-    __table_args__ = {"schema": DbSchemaEnum.CORPUS_RELATED.value}
+    __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
@@ -49,7 +49,7 @@ class EmbeddingModel(Base):
 
 class BiClassifierModel(Base):
     __tablename__ = "bi_classifier_model"
-    __table_args__ = {"schema": DbSchemaEnum.CORPUS_RELATED.value}
+    __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
@@ -67,7 +67,7 @@ class BiClassifierModel(Base):
 
 class NClassifierModel(Base):
     __tablename__ = "n_classifier_model"
-    __table_args__ = {"schema": DbSchemaEnum.CORPUS_RELATED.value}
+    __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
