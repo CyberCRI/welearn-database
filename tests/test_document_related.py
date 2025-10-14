@@ -76,18 +76,6 @@ class TestWeLearnDocument(TestCase):
                 details={"author": "Test Author"}
             )
 
-    def test_validate_no_full_content(self):
-        with self.assertRaises(ValueError):
-            WeLearnDocument(
-                title="Test Document",
-                url="https://example.com/test-document",
-                full_content=None,
-                description="A short description of the test document.",
-                lang="en",
-                corpus="Test Corpus",
-                details={"author": "Test Author"}
-            )
-
     def test_full_content(self):
         test_doc = WeLearnDocument(
             title="Test Document",
@@ -115,17 +103,6 @@ class TestWeLearnDocument(TestCase):
         self.assertEqual(test_doc.description,
                          "A short description of the test document.")
 
-    def test_validate_no_description(self):
-        with self.assertRaises(ValueError):
-            WeLearnDocument(
-                title="Test Document",
-                url="https://example.com/test-document",
-                full_content="This is a test document, used for unit testing, please ignore. Thank you!",
-                description=None,
-                lang="en",
-                corpus="Test Corpus",
-                details={"author": "Test Author"}
-            )
     def test_trace(self):
         content = "This is a test document, used for unit testing, please ignore. Thank you!"
         expected_trace =  adler32(bytes(content, "utf-8"))

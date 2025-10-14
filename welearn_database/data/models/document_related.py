@@ -46,8 +46,8 @@ class WeLearnDocument(Base):
     url: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str | None]
     lang: Mapped[str | None]
-    _description: Mapped[str]
-    _full_content: Mapped[str]
+    _description: Mapped[str | None]
+    _full_content: Mapped[str | None]
     details: Mapped[dict[str, Any] | None]
     _trace: Mapped[int | None] = mapped_column(types.BIGINT)
     corpus_id: Mapped[UUID] = mapped_column(
@@ -98,7 +98,7 @@ class WeLearnDocument(Base):
         :raises ValueError: If the full content is too short.
         """
         if not value:
-            raise ValueError("Full content cannot be empty or None")
+            return value
         if len(value) < 25:
             raise ValueError(f"Content is too short : {len(value)}")
         return value
@@ -118,7 +118,7 @@ class WeLearnDocument(Base):
     @description.setter
     def description(self, description):
         if not description:
-            raise ValueError("Description cannot be empty or None")
+            self._description = description
         self._description = clean_text(description)
 
     @hybrid_property
