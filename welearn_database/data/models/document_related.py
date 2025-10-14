@@ -13,7 +13,7 @@ from welearn_database.modules.text_cleaning import clean_text
 from welearn_database.data.enumeration import DbSchemaEnum, Step, Counter
 from welearn_database.data.models.corpus_related import Corpus, NClassifierModel, BiClassifierModel, EmbeddingModel
 from . import Base
-from ...exceptions import InvalidURLScheme
+from welearn_database.exceptions import InvalidURLScheme
 
 schema_name = DbSchemaEnum.DOCUMENT_RELATED.value
 
@@ -137,7 +137,7 @@ class ProcessState(Base):
     :cvar document: The relationship to the WeLearnDocument object.
     """
     __tablename__ = "process_state"
-    __table_args__ = {"schema": DbSchemaEnum.DOCUMENT_RELATED.value}
+    __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
@@ -173,7 +173,7 @@ class Keyword(Base):
     __tablename__ = "keyword"
     __table_args__ = (
         UniqueConstraint("keyword", name="keyword_unique"),
-        {"schema": DbSchemaEnum.DOCUMENT_RELATED.value},
+        {"schema": schema_name}
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -196,7 +196,7 @@ class WeLearnDocumentKeyword(Base):
             "keyword_id",
             name="unique_welearn_document_keyword_association",
         ),
-        {"schema": DbSchemaEnum.DOCUMENT_RELATED.value},
+        {"schema": schema_name},
     )
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
@@ -218,7 +218,7 @@ class WeLearnDocumentKeyword(Base):
 
 class ErrorRetrieval(Base):
     __tablename__ = "error_retrieval"
-    __table_args__ = ({"schema": DbSchemaEnum.DOCUMENT_RELATED.value},)
+    __table_args__ = ({"schema": schema_name},)
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
@@ -253,7 +253,7 @@ class ErrorRetrieval(Base):
 
 class DocumentSlice(Base):
     __tablename__ = "document_slice"
-    __table_args__ = {"schema": DbSchemaEnum.DOCUMENT_RELATED.value}
+    __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
@@ -283,9 +283,7 @@ class DocumentSlice(Base):
 
 class AnalyticCounter(Base):
     __tablename__ = "analytic_counter"
-    __table_args__ = {
-        "schema": DbSchemaEnum.DOCUMENT_RELATED.value,
-    }
+    __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
@@ -325,7 +323,7 @@ class CorpusEmbeddingModel(Base):
             "embedding_model_id",
             name="unique_corpus_embedding_association",
         ),
-        {"schema": DbSchemaEnum.CORPUS_RELATED.value},
+        {"schema": schema_name},
     )
 
     corpus_id = mapped_column(
@@ -358,7 +356,7 @@ class CorpusNClassifierModel(Base):
             "n_classifier_model_id",
             name="unique_corpus_n_classifier_association",
         ),
-        {"schema": DbSchemaEnum.CORPUS_RELATED.value},
+        {"schema": schema_name},
     )
 
     corpus_id = mapped_column(
@@ -391,7 +389,7 @@ class CorpusBiClassifierModel(Base):
             "bi_classifier_model_id",
             name="unique_corpus_bi_classifier_association",
         ),
-        {"schema": DbSchemaEnum.CORPUS_RELATED.value},
+        {"schema": schema_name},
     )
 
     corpus_id = mapped_column(
@@ -417,7 +415,7 @@ class CorpusBiClassifierModel(Base):
 
 class Sdg(Base):
     __tablename__ = "sdg"
-    __table_args__ = {"schema": DbSchemaEnum.DOCUMENT_RELATED.value}
+    __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -452,3 +450,11 @@ class Sdg(Base):
     bi_classifier_model: Mapped["BiClassifierModel"] = relationship()
     n_classifier_model: Mapped["NClassifierModel"] = relationship()
     slice: Mapped["DocumentSlice"] = relationship()
+
+# Views
+class QtyDocumentInQdrant(Base):
+    __tablename__ = "qty_document_in_qdrant"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    document_in_qdrant: Mapped[int] = mapped_column(primary_key=True)

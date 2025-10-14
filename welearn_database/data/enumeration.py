@@ -17,6 +17,7 @@ class Counter(Enum):
     HIT = auto()
 
 class DbSchemaEnum(StrEnum):
+    GRAFANA = auto()
     CORPUS_RELATED = auto()
     DOCUMENT_RELATED = auto()
     USER_RELATED = auto()
