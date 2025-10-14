@@ -19,7 +19,12 @@ jobs:
     - name: Run tests
       env:
         PYTHONPATH: welearn_database
-      run: python3 -m unittest discover tests/
+      run: >-
+        export POETRY_HOME=/opt/poetry
+        python3 -m venv $POETRY_HOME
+        $POETRY_HOME/bin/pip install poetry==2.0.0
+        $POETRY_HOME/bin/poetry install
+        python3 -m unittest discover tests/
 
   build:
     name: Build distribution 📦
