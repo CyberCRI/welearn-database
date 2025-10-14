@@ -117,6 +117,8 @@ class WeLearnDocument(Base):
 
     @description.setter
     def description(self, description):
+        if not description:
+            raise ValueError("Description cannot be empty or None")
         self._description = clean_text(description)
 
     @hybrid_property
