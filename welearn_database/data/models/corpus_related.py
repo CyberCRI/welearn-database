@@ -96,3 +96,12 @@ class NClassifierModel(Base):
         default=func.localtimestamp(),
         server_default="NOW()",
     )
+
+class CorpusNameEmbeddingModelLang(Base):
+    __tablename__ = "corpus_name_embedding_model_lang"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+    source_name : Mapped[str]= mapped_column(primary_key=True)
+    title: Mapped[str]
+    lang: Mapped[str]
+
