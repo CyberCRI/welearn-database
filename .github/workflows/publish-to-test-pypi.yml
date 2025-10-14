@@ -1,7 +1,9 @@
 name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
 on:
-  push
+  push:
+    branches:
+      - main
 
 jobs:
   test:
@@ -74,7 +76,6 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
-
 
   publish-to-pypi:
     name: >-
