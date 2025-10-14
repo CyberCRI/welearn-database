@@ -55,12 +55,18 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.x"
-    - name: Install poetry
-      run: >-
-        export POETRY_HOME=/opt/poetry
-        python3 -m venv $POETRY_HOME
-        $POETRY_HOME/bin/pip install poetry==2.0.0
-        $POETRY_HOME/bin/poetry --version
+    - name: Install Poetry with pipx
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --upgrade pipx
+        pipx install "poetry==2.0.0"
+        poetry --version
+
+    - name: Configure Poetry (no virtualenvs in-project)
+      run: |
+        poetry config virtualenvs.in-project false
+        poetry config installer.max-workers 4
+
     - name: Build a binary wheel and a source tarball
       run: poetry build
     - name: Store the distribution packages
