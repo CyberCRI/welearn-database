@@ -12,7 +12,7 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship, validates
 from welearn_database.modules.text_cleaning import clean_text
 from welearn_database.data.enumeration import DbSchemaEnum, Step, Counter, ContextType
 from welearn_database.data.models.corpus_related import Corpus, NClassifierModel, BiClassifierModel, EmbeddingModel
-from . import Base
+from welearn_database.data.models import Base
 from welearn_database.exceptions import InvalidURLScheme
 
 schema_name = DbSchemaEnum.DOCUMENT_RELATED.value
