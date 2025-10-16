@@ -127,7 +127,10 @@ class WeLearnDocument(Base):
 
     @hybrid_property
     def trace(self):
-        return adler32(bytes(self.full_content, "utf-8"))
+        if self.full_content:
+            return adler32(bytes(self.full_content, "utf-8"))
+        else:
+            return None
 
 
 class ProcessState(Base):
