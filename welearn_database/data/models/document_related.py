@@ -4,16 +4,21 @@ from urllib.parse import urlparse
 from uuid import UUID
 from zlib import adler32
 
-from sqlalchemy import types, ForeignKey, UniqueConstraint, func, LargeBinary, Integer
-from sqlalchemy.dialects.postgresql import TIMESTAMP, ENUM, ARRAY
+from sqlalchemy import ForeignKey, Integer, LargeBinary, UniqueConstraint, func, types
+from sqlalchemy.dialects.postgresql import ARRAY, ENUM, TIMESTAMP
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import mapped_column, Mapped, relationship, validates
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from welearn_database.modules.text_cleaning import clean_text
-from welearn_database.data.enumeration import DbSchemaEnum, Step, Counter, ContextType
-from welearn_database.data.models.corpus_related import Corpus, NClassifierModel, BiClassifierModel, EmbeddingModel
+from welearn_database.data.enumeration import ContextType, Counter, DbSchemaEnum, Step
 from welearn_database.data.models import Base
+from welearn_database.data.models.corpus_related import (
+    BiClassifierModel,
+    Corpus,
+    EmbeddingModel,
+    NClassifierModel,
+)
 from welearn_database.exceptions import InvalidURLScheme
+from welearn_database.modules.text_cleaning import clean_text
 
 schema_name = DbSchemaEnum.DOCUMENT_RELATED.value
 
@@ -34,6 +39,7 @@ class WeLearnDocument(Base):
     :cvar updated_at: The timestamp when the document was last updated.
     :cvar corpus: The relationship to the Corpus object.
     """
+
     __tablename__ = "welearn_document"
     __table_args__ = (
         UniqueConstraint("url", name="welearn_document_url_key"),
@@ -83,9 +89,7 @@ class WeLearnDocument(Base):
         parsed_url = urlparse(url=value)
         accepted_scheme = ["https"]
         if parsed_url.scheme not in accepted_scheme or len(parsed_url.netloc) == 0:
-            raise InvalidURLScheme(
-                "There is an error on the URL form : %s", value
-            )
+            raise InvalidURLScheme("There is an error on the URL form : %s", value)
         return value
 
     @validates("_full_content")
@@ -136,6 +140,7 @@ class ProcessState(Base):
     :cvar operation_order: A bigint representing the order of operations for the process state.
     :cvar document: The relationship to the WeLearnDocument object.
     """
+
     __tablename__ = "process_state"
     __table_args__ = {"schema": schema_name}
 
@@ -173,7 +178,7 @@ class Keyword(Base):
     __tablename__ = "keyword"
     __table_args__ = (
         UniqueConstraint("keyword", name="keyword_unique"),
-        {"schema": schema_name}
+        {"schema": schema_name},
     )
 
     id: Mapped[UUID] = mapped_column(
@@ -314,7 +319,6 @@ class AnalyticCounter(Base):
     document: Mapped["WeLearnDocument"] = relationship()
 
 
-
 class CorpusEmbeddingModel(Base):
     __tablename__ = "corpus_embedding_model"
     __table_args__ = (
@@ -451,6 +455,7 @@ class Sdg(Base):
     n_classifier_model: Mapped["NClassifierModel"] = relationship()
     slice: Mapped["DocumentSlice"] = relationship()
 
+
 class ContextDocument(Base):
     __tablename__ = "context_document"
 
@@ -464,9 +469,10 @@ class ContextDocument(Base):
     title: Mapped[str]
     full_content: Mapped[str]
     embedding_model_id = mapped_column(
-        types.Uuid, ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.embedding_model.id")
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.embedding_model.id"),
     )
-    sdg_related: list[int] = mapped_column(ARRAY(Integer))
+    sdg_related: Mapped[list[int]] = mapped_column(ARRAY(Integer))
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
@@ -475,18 +481,18 @@ class ContextDocument(Base):
     )
     embedding: Mapped[bytes] = mapped_column(LargeBinary)
 
-    updated_at = mapped_column(
+    updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
         onupdate=func.localtimestamp(),
     )
 
-    context_type = mapped_column(
+    context_type: Mapped[str] = mapped_column(
         ENUM(
             *(e.value.lower() for e in ContextType),
             name="context_type",
-            schema="document_related"
+            schema="document_related",
         ),
         nullable=False,
     )
@@ -496,6 +502,7 @@ class ContextDocument(Base):
         UniqueConstraint("url", name="meta_document_url_key"),
         {"schema": "document_related"},
     )
+
 
 # Views
 class QtyDocumentInQdrant(Base):
