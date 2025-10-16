@@ -21,3 +21,8 @@ class DbSchemaEnum(StrEnum):
     CORPUS_RELATED = auto()
     DOCUMENT_RELATED = auto()
     USER_RELATED = auto()
+
+class ContextType(StrEnum):
+    INTRODUCTION = auto()
+    TARGET = auto()
+    SUBJECT = auto()

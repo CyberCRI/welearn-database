@@ -4,13 +4,13 @@ from urllib.parse import urlparse
 from uuid import UUID
 from zlib import adler32
 
-from sqlalchemy import types, ForeignKey, UniqueConstraint, func, LargeBinary
-from sqlalchemy.dialects.postgresql import TIMESTAMP, ENUM
+from sqlalchemy import types, ForeignKey, UniqueConstraint, func, LargeBinary, Integer
+from sqlalchemy.dialects.postgresql import TIMESTAMP, ENUM, ARRAY
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import mapped_column, Mapped, relationship, validates
 
 from welearn_database.modules.text_cleaning import clean_text
-from welearn_database.data.enumeration import DbSchemaEnum, Step, Counter
+from welearn_database.data.enumeration import DbSchemaEnum, Step, Counter, ContextType
 from welearn_database.data.models.corpus_related import Corpus, NClassifierModel, BiClassifierModel, EmbeddingModel
 from . import Base
 from welearn_database.exceptions import InvalidURLScheme
@@ -450,6 +450,52 @@ class Sdg(Base):
     bi_classifier_model: Mapped["BiClassifierModel"] = relationship()
     n_classifier_model: Mapped["NClassifierModel"] = relationship()
     slice: Mapped["DocumentSlice"] = relationship()
+
+class ContextDocument(Base):
+    __tablename__ = "context_document"
+
+    id = mapped_column(
+        types.Uuid,
+        primary_key=True,
+        server_default="gen_random_uuid()",
+        nullable=False,
+    )
+    url: Mapped[str]
+    title: Mapped[str]
+    full_content: Mapped[str]
+    embedding_model_id = mapped_column(
+        types.Uuid, ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.embedding_model.id")
+    )
+    sdg_related: list[int] = mapped_column(ARRAY(Integer))
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+    embedding: Mapped[bytes] = mapped_column(LargeBinary)
+
+    updated_at = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        onupdate=func.localtimestamp(),
+    )
+
+    context_type = mapped_column(
+        ENUM(
+            *(e.value.lower() for e in ContextType),
+            name="context_type",
+            schema="document_related"
+        ),
+        nullable=False,
+    )
+    embedding_model = relationship("EmbeddingModel", foreign_keys=[embedding_model_id])
+
+    __table_args__ = (
+        UniqueConstraint("url", name="meta_document_url_key"),
+        {"schema": "document_related"},
+    )
 
 # Views
 class QtyDocumentInQdrant(Base):
