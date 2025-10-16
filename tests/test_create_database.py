@@ -1,13 +1,15 @@
 import uuid
 from unittest import TestCase
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from tests.helpers import handle_schema_with_sqlite
-from welearn_database.data.models import Base
-from welearn_database.data.models.corpus_related import Corpus, Category
-from welearn_database.data.models.user_related import UserProfile, Bookmark
+from welearn_database.data.models import Base, InferredUser
+from welearn_database.data.models.corpus_related import Category, Corpus
 from welearn_database.data.models.document_related import WeLearnDocument
+from welearn_database.data.models.user_related import Bookmark, UserProfile
+
 
 class TestDatabaseCRUD(TestCase):
     def setUp(self):
@@ -54,20 +56,26 @@ class TestDatabaseCRUD(TestCase):
             id=uuid.uuid4(),
             username="testuser",
             email="test@example.com",
-            password_digest=b"secret"
+            password_digest=b"secret",
         )
         self.session.add(user)
         self.session.commit()
-        user_from_db = self.session.query(UserProfile).filter_by(username="testuser").first()
+        user_from_db = (
+            self.session.query(UserProfile).filter_by(username="testuser").first()
+        )
         self.assertIsNotNone(user_from_db)
         self.assertEqual(user_from_db.email, "test@example.com")
         user_from_db.email = "new@example.com"
         self.session.commit()
-        updated_user = self.session.query(UserProfile).filter_by(email="new@example.com").first()
+        updated_user = (
+            self.session.query(UserProfile).filter_by(email="new@example.com").first()
+        )
         self.assertIsNotNone(updated_user)
         self.session.delete(updated_user)
         self.session.commit()
-        deleted_user = self.session.query(UserProfile).filter_by(username="testuser").first()
+        deleted_user = (
+            self.session.query(UserProfile).filter_by(username="testuser").first()
+        )
         self.assertIsNone(deleted_user)
 
     def test_crud_document_and_bookmark(self):
@@ -92,28 +100,27 @@ class TestDatabaseCRUD(TestCase):
             description="Description test",
             lang="fr",
             corpus_id=corpus.id,
-            details={"auteur": "Testeur"}
+            details={"auteur": "Testeur"},
         )
         self.session.add(doc)
         self.session.commit()
-        user = UserProfile(
+        user = InferredUser(
             id=uuid.uuid4(),
-            username="bookmarkuser",
-            email="bookmark@example.com",
-            password_digest=b"secret"
         )
         self.session.add(user)
         self.session.commit()
         bookmark = Bookmark(
-            id=uuid.uuid4(),
-            document_id=doc.id,
-            user_id=user.id
+            id=uuid.uuid4(), document_id=doc.id, inferred_user_id=user.id
         )
         self.session.add(bookmark)
         self.session.commit()
-        bookmark_from_db = self.session.query(Bookmark).filter_by(user_id=user.id).first()
+        bookmark_from_db = (
+            self.session.query(Bookmark).filter_by(inferred_user_id=user.id).first()
+        )
         self.assertIsNotNone(bookmark_from_db)
         self.assertEqual(bookmark_from_db.welearn_document.title, "Document Test")
         self.session.delete(bookmark_from_db)
         self.session.commit()
-        self.assertIsNone(self.session.query(Bookmark).filter_by(user_id=user.id).first())
+        self.assertIsNone(
+            self.session.query(Bookmark).filter_by(inferred_user_id=user.id).first()
+        )

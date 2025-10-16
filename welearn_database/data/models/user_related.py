@@ -1,12 +1,13 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import types, ForeignKey, func
+from sqlalchemy import ForeignKey, func, types
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from welearn_database.data.enumeration import DbSchemaEnum
 from welearn_database.data.models.document_related import WeLearnDocument
+
 from . import Base
 
 schema_name = DbSchemaEnum.USER_RELATED.value
@@ -52,11 +53,11 @@ class Bookmark(Base):
         ),
         nullable=False,
     )
-    user_id = mapped_column(
+    inferred_user_id = mapped_column(
         types.Uuid,
         ForeignKey(
-            f"{DbSchemaEnum.USER_RELATED.value}.user_profile.id",
-            name="bookmark_user_id_fkey2",
+            f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id",
+            name="bookmark_inferred_user_id_fkey",
         ),
         nullable=False,
     )
@@ -73,7 +74,7 @@ class Bookmark(Base):
         server_default="NOW()",
         onupdate=func.localtimestamp(),
     )
-    user: Mapped["UserProfile"] = relationship()
+    inferred_user: Mapped["InferredUser"] = relationship()
     welearn_document: Mapped["WeLearnDocument"] = relationship()
 
 
