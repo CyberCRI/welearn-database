@@ -6,7 +6,6 @@ from zlib import adler32
 
 from sqlalchemy import ForeignKey, Integer, LargeBinary, UniqueConstraint, func, types
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, TIMESTAMP
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from welearn_database.data.enumeration import ContextType, Counter, DbSchemaEnum, Step
@@ -52,8 +51,8 @@ class WeLearnDocument(Base):
     url: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str | None]
     lang: Mapped[str | None]
-    _description: Mapped[str | None]
-    _full_content: Mapped[str | None]
+    description: Mapped[str | None]
+    full_content: Mapped[str | None]
     details: Mapped[dict[str, Any] | None]
     _trace: Mapped[int | None] = mapped_column(types.BIGINT)
     corpus_id: Mapped[UUID] = mapped_column(
@@ -92,7 +91,7 @@ class WeLearnDocument(Base):
             raise InvalidURLScheme("There is an error on the URL form : %s", value)
         return value
 
-    @validates("_full_content")
+    @validates("full_content")
     def validate_full_content(self, key, value):
         """
         Validate the full content to ensure it meets the minimum length requirement.
@@ -105,27 +104,21 @@ class WeLearnDocument(Base):
             return value
         if len(value) < 25:
             raise ValueError(f"Content is too short : {len(value)}")
-        return value
+        return clean_text(value)
 
-    @hybrid_property
-    def full_content(self):
-        return self._full_content
+    @validates("description")
+    def validate_description(self, key, value):
+        """
 
-    @full_content.setter
-    def full_content(self, full_content):
-        self._full_content = clean_text(full_content)
+        :param key:
+        :param value:
+        :return:
+        """
+        if not value:
+            return value
+        return clean_text(value)
 
-    @hybrid_property
-    def description(self):
-        return self._description
-
-    @description.setter
-    def description(self, description):
-        if not description:
-            self._description = description
-        self._description = clean_text(description)
-
-    @hybrid_property
+    @property
     def trace(self):
         if self.full_content:
             return adler32(bytes(self.full_content, "utf-8"))
