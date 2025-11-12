@@ -109,10 +109,10 @@ class WeLearnDocument(Base):
     @validates("description")
     def validate_description(self, key, value):
         """
-
-        :param key:
-        :param value:
-        :return:
+        Validate and clean the description text.
+        :param key: The name of the attribute being validated.
+        :param value: The value of the description to validate.
+        :return: The cleaned description text. If the value is None or empty, it returns the value as is.
         """
         if not value:
             return value
