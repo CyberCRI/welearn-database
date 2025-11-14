@@ -1,6 +1,6 @@
 [project]
 name = "welearn-database"
-version = "0.2.6"
+version = "0.2.7"
 description = "All stuff related to relationnal database from the WeLearn project"
 authors = [
     {name = "Théo",email = "theo.nardin@cri-paris.org"}
