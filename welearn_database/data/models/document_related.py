@@ -54,7 +54,7 @@ class WeLearnDocument(Base):
     description: Mapped[str | None]
     full_content: Mapped[str | None]
     details: Mapped[dict[str, Any] | None]
-    _trace: Mapped[int | None] = mapped_column(types.BIGINT)
+    trace: Mapped[int | None] = mapped_column(types.BIGINT)
     corpus_id: Mapped[UUID] = mapped_column(
         types.Uuid,
         ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.corpus.id"),
@@ -101,10 +101,15 @@ class WeLearnDocument(Base):
         :raises ValueError: If the full content is too short.
         """
         if not value:
+            self.trace = None
             return value
+        cleaned = clean_text(value)
         if len(value) < 25:
             raise ValueError(f"Content is too short : {len(value)}")
-        return clean_text(value)
+
+        # Hash compute and db storage
+        self.trace = adler32(cleaned.encode("utf-8"))
+        return cleaned
 
     @validates("description")
     def validate_description(self, key, value):
@@ -117,13 +122,6 @@ class WeLearnDocument(Base):
         if not value:
             return value
         return clean_text(value)
-
-    @property
-    def trace(self):
-        if self.full_content:
-            return adler32(bytes(self.full_content, "utf-8"))
-        else:
-            return None
 
 
 class ProcessState(Base):
