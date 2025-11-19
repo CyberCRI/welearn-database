@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from tests.helpers import handle_schema_with_sqlite
-from welearn_database.data.enumeration import Step
+from welearn_database.data.enumeration import ExternalIdType, Step
 from welearn_database.data.models import Base, QtyDocumentInQdrant
 from welearn_database.data.models.corpus_related import Category, Corpus
 from welearn_database.data.models.document_related import ProcessState, WeLearnDocument
@@ -109,6 +109,63 @@ class TestWeLearnDocument(TestCase):
         self.assertEqual(
             test_doc.description, "A short description of the test document."
         )
+
+    def test_external_id(self):
+        engine = create_engine("sqlite://")
+        s_maker = sessionmaker(engine)
+        handle_schema_with_sqlite(engine)
+
+        test_session = s_maker()
+        Base.metadata.create_all(test_session.get_bind())
+
+        category_id = uuid.uuid4()
+        corpus_id = uuid.uuid4()
+        doc_id = uuid.uuid4()
+        test_category = Category(
+            id=category_id,
+            title="Test Category",
+        )
+        test_session.add(test_category)
+        test_session.commit()
+
+        test_corpus = Corpus(
+            id=corpus_id,
+            source_name="Test Corpus",
+            is_fix=True,
+            is_active=True,
+            binary_treshold=0.5,
+            category_id=category_id,
+        )
+        test_session.add(test_corpus)
+        test_session.commit()
+
+        test_doc = WeLearnDocument(
+            id=doc_id,
+            title="Test Document",
+            external_id="10.1000/xyz123",
+            external_id_type=ExternalIdType.DOI.value.lower(),
+            corpus_id=corpus_id,
+            url="https://example.com/test-document",
+            full_content="This is a test document, used for unit testing, please ignore. Thank you!",
+            description="A short description of the test document.",
+            lang="en",
+            details={"author": "Test Author"},
+        )
+
+        test_session.add(test_doc)
+        test_session.commit()
+
+        retrieved_doc = (
+            test_session.query(WeLearnDocument)
+            .filter(WeLearnDocument.id == doc_id)
+            .first()
+        )
+
+        self.assertIsNotNone(retrieved_doc)
+        self.assertEqual(
+            retrieved_doc.external_id_type, ExternalIdType.DOI.value.lower()
+        )
+        self.assertEqual(retrieved_doc.external_id, "10.1000/xyz123")
 
     def test_trace(self):
         content = (

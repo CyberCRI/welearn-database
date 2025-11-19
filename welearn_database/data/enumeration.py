@@ -1,4 +1,4 @@
-from enum import Enum, auto, StrEnum
+from enum import Enum, StrEnum, auto
 
 
 class Step(Enum):
@@ -13,8 +13,10 @@ class Step(Enum):
     KEPT_FOR_TRACE = "kept_for_trace"
     DOCUMENT_IS_IRRETRIEVABLE = "document_is_irretrievable"
 
+
 class Counter(Enum):
     HIT = auto()
+
 
 class DbSchemaEnum(StrEnum):
     GRAFANA = auto()
@@ -23,7 +25,16 @@ class DbSchemaEnum(StrEnum):
     DOCUMENT_RELATED = auto()
     USER_RELATED = auto()
 
+
 class ContextType(StrEnum):
     INTRODUCTION = auto()
     TARGET = auto()
     SUBJECT = auto()
+
+
+class ExternalIdType(StrEnum):
+    DOI = auto()
+    API_ID = auto()
+    HANDLE = auto()
+    SLUG = auto()
+    QID = auto()

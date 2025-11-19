@@ -8,7 +8,13 @@ from sqlalchemy import ForeignKey, Integer, LargeBinary, UniqueConstraint, func,
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from welearn_database.data.enumeration import ContextType, Counter, DbSchemaEnum, Step
+from welearn_database.data.enumeration import (
+    ContextType,
+    Counter,
+    DbSchemaEnum,
+    ExternalIdType,
+    Step,
+)
 from welearn_database.data.models import Base
 from welearn_database.data.models.corpus_related import (
     BiClassifierModel,
@@ -47,6 +53,14 @@ class WeLearnDocument(Base):
 
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    external_id: Mapped[str | None]
+    external_id_type: Mapped[str | None] = mapped_column(
+        ENUM(
+            *(e.value.lower() for e in ExternalIdType),
+            name="external_id_type",
+            schema="document_related",
+        ),
     )
     url: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str | None]
