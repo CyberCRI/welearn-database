@@ -1,14 +1,16 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import types, ForeignKey, func
+from sqlalchemy import ForeignKey, UniqueConstraint, func, types
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from . import Base
 from welearn_database.data.enumeration import DbSchemaEnum
 
+from . import Base
+
 schema_name = DbSchemaEnum.CORPUS_RELATED.value
+
 
 class Corpus(Base):
     __tablename__ = "corpus"
@@ -25,6 +27,7 @@ class Corpus(Base):
         types.Uuid,
         ForeignKey(f"{schema_name}.category.id"),
     )
+
 
 class Category(Base):
     __tablename__ = "category"
@@ -97,11 +100,109 @@ class NClassifierModel(Base):
         server_default="NOW()",
     )
 
+
 class CorpusNameEmbeddingModelLang(Base):
     __tablename__ = "corpus_name_embedding_model_lang"
     __table_args__ = {"schema": schema_name}
     __read_only__ = True
-    source_name : Mapped[str]= mapped_column(primary_key=True)
+    source_name: Mapped[str] = mapped_column(primary_key=True)
     title: Mapped[str]
     lang: Mapped[str]
 
+
+class CorpusEmbeddingModel(Base):
+    __tablename__ = "corpus_embedding_model"
+    __table_args__ = (
+        UniqueConstraint(
+            "corpus_id",
+            "embedding_model_id",
+            name="unique_corpus_embedding_association",
+        ),
+        {"schema": schema_name},
+    )
+
+    corpus_id = mapped_column(
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.corpus.id"),
+        primary_key=True,
+    )
+    embedding_model_id = mapped_column(
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.embedding_model.id"),
+        primary_key=True,
+    )
+
+    used_since: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+
+    embedding_model: Mapped["EmbeddingModel"] = relationship()
+    corpus: Mapped["Corpus"] = relationship()
+
+
+class CorpusNClassifierModel(Base):
+    __tablename__ = "corpus_n_classifier_model"
+    __table_args__ = (
+        UniqueConstraint(
+            "corpus_id",
+            "n_classifier_model_id",
+            name="unique_corpus_n_classifier_association",
+        ),
+        {"schema": schema_name},
+    )
+
+    corpus_id = mapped_column(
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.corpus.id"),
+        primary_key=True,
+    )
+    n_classifier_model_id = mapped_column(
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.n_classifier_model.id"),
+        primary_key=True,
+    )
+
+    used_since: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+
+    n_classifier_model: Mapped["NClassifierModel"] = relationship()
+    corpus: Mapped["Corpus"] = relationship()
+
+
+class CorpusBiClassifierModel(Base):
+    __tablename__ = "corpus_bi_classifier_model"
+    __table_args__ = (
+        UniqueConstraint(
+            "corpus_id",
+            "bi_classifier_model_id",
+            name="unique_corpus_bi_classifier_association",
+        ),
+        {"schema": schema_name},
+    )
+
+    corpus_id = mapped_column(
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.corpus.id"),
+        primary_key=True,
+    )
+    bi_classifier_model_id = mapped_column(
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.CORPUS_RELATED.value}.bi_classifier_model.id"),
+        primary_key=True,
+    )
+    used_since: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+
+    bi_classifier_model: Mapped["BiClassifierModel"] = relationship()
+    corpus: Mapped["Corpus"] = relationship()
