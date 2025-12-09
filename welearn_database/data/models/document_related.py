@@ -250,6 +250,41 @@ class ErrorRetrieval(Base):
     document: Mapped["WeLearnDocument"] = relationship()
 
 
+class ErrorDataQuality(Base):
+    __tablename__ = "error_data_quality"
+    __table_args__ = ({"schema": schema_name},)
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    document_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.DOCUMENT_RELATED.value}.welearn_document.id",
+            name="error_data_quality_document_id_fkey",
+        ),
+        nullable=False,
+    )
+    slice_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.DOCUMENT_RELATED.value}.document_slice.id",
+            name="error_data_quality_slice_id_fkey",
+        ),
+        nullable=True,
+    )
+    error_raiser: Mapped[str]
+    error_info: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+    document: Mapped["WeLearnDocument"] = relationship()
+    slice: Mapped["WeLearnSlice"] = relationship()
+
+
 class DocumentSlice(Base):
     __tablename__ = "document_slice"
     __table_args__ = {"schema": schema_name}
