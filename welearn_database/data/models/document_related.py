@@ -281,8 +281,8 @@ class ErrorDataQuality(Base):
         default=func.localtimestamp(),
         server_default="NOW()",
     )
-    document: Mapped["WeLearnDocument"] = relationship()
-    slice: Mapped["DocumentSlice"] = relationship()
+    document: Mapped["WeLearnDocument"] = relationship(cascade="all, delete")
+    slice: Mapped["DocumentSlice"] = relationship(cascade="all, delete")
 
 
 class DocumentSlice(Base):
