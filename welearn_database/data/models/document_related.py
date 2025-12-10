@@ -282,7 +282,7 @@ class ErrorDataQuality(Base):
         server_default="NOW()",
     )
     document: Mapped["WeLearnDocument"] = relationship()
-    slice: Mapped["WeLearnSlice"] = relationship()
+    slice: Mapped["DocumentSlice"] = relationship()
 
 
 class DocumentSlice(Base):
