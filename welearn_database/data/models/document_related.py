@@ -4,7 +4,15 @@ from urllib.parse import urlparse
 from uuid import UUID
 from zlib import adler32
 
-from sqlalchemy import ForeignKey, Integer, LargeBinary, UniqueConstraint, func, types
+from sqlalchemy import (
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    UniqueConstraint,
+    func,
+    text,
+    types,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -255,7 +263,10 @@ class ErrorDataQuality(Base):
     __table_args__ = ({"schema": schema_name},)
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid,
+        primary_key=True,
+        nullable=False,
+        server_default="gen_random_uuid()",
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
