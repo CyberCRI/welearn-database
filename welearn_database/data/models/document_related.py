@@ -4,7 +4,15 @@ from urllib.parse import urlparse
 from uuid import UUID
 from zlib import adler32
 
-from sqlalchemy import ForeignKey, Integer, LargeBinary, UniqueConstraint, func, types
+from sqlalchemy import (
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    UniqueConstraint,
+    func,
+    text,
+    types,
+)
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -262,6 +270,44 @@ class ErrorRetrieval(Base):
     error_info: Mapped[str]
 
     document: Mapped["WeLearnDocument"] = relationship()
+
+
+class ErrorDataQuality(Base):
+    __tablename__ = "error_data_quality"
+    __table_args__ = ({"schema": schema_name},)
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        primary_key=True,
+        nullable=False,
+        server_default="gen_random_uuid()",
+    )
+    document_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.DOCUMENT_RELATED.value}.welearn_document.id",
+            name="error_data_quality_document_id_fkey",
+        ),
+        nullable=False,
+    )
+    slice_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.DOCUMENT_RELATED.value}.document_slice.id",
+            name="error_data_quality_slice_id_fkey",
+        ),
+        nullable=True,
+    )
+    error_raiser: Mapped[str]
+    error_info: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+    document: Mapped["WeLearnDocument"] = relationship(cascade="all, delete")
+    slice: Mapped["DocumentSlice"] = relationship(cascade="all, delete")
 
 
 class DocumentSlice(Base):
