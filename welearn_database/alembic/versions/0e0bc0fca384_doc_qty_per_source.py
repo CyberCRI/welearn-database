@@ -23,7 +23,7 @@ def upgrade() -> None:
         """
         CREATE MATERIALIZED VIEW document_related.qty_document_in_qdrant_per_corpus
         AS 
-        SELECT
+        (SELECT
             source_name,
             COUNT(1)
         FROM
@@ -33,7 +33,8 @@ def upgrade() -> None:
         WHERE
             tdls.title = 'document_in_qdrant'
         GROUP BY
-            source_name;
+            source_name)
+        WITH NO DATA;
         """
     )
 
@@ -41,7 +42,7 @@ def upgrade() -> None:
         """
         CREATE MATERIALIZED VIEW document_related.qty_document_per_corpus
         AS 
-        SELECT
+        (SELECT
             source_name,
             COUNT(1)
         FROM
@@ -49,7 +50,8 @@ def upgrade() -> None:
         INNER JOIN corpus_related.corpus c ON
             c.id = tdls.corpus_id
         GROUP BY
-            source_name;
+            source_name)
+        WITH NO DATA;
         """
     )
 
