@@ -475,7 +475,7 @@ class QtyDocumentInQdrantPerCorpus(Base):
     __read_only__ = True
 
     source_name: Mapped[str] = mapped_column(primary_key=True)
-    count: Mapped[int] = mapped_column(primary_key=True)
+    count: Mapped[int]
 
 
 class QtyDocumentPerCorpus(Base):
@@ -484,4 +484,4 @@ class QtyDocumentPerCorpus(Base):
     __read_only__ = True
 
     source_name: Mapped[str] = mapped_column(primary_key=True)
-    count: Mapped[int] = mapped_column(primary_key=True)
+    count: Mapped[int]
