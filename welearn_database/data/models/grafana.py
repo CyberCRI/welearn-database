@@ -21,6 +21,7 @@ class Corpus(Base):
     is_fix: Mapped[bool | None] = mapped_column(nullable=True)
     binary_treshold: Mapped[float | None] = mapped_column(nullable=True)
 
+
 class DocumentLatestState(Base):
     __tablename__ = "document_latest_state"
     __table_args__ = {"schema": schema_name}
@@ -93,6 +94,7 @@ class ProcessState(Base):
     created_at: Mapped[datetime] = mapped_column()
     operation_order: Mapped[int] = mapped_column()
 
+
 class QtyEndpointsPerUser(Base):
     __tablename__ = "qty_endpoints_per_user"
     __table_args__ = {"schema": schema_name}
@@ -106,7 +108,9 @@ class QtySessionEndpointPerUser(Base):
     __table_args__ = {"schema": schema_name}
     __read_only__ = True
 
-    inferred_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    inferred_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True
+    )
     host: Mapped[str] = mapped_column(primary_key=True)
     count_sessions: Mapped[int] = mapped_column()
     count_endpoints: Mapped[int] = mapped_column()

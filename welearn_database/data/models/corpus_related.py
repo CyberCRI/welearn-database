@@ -20,6 +20,7 @@ class Corpus(Base):
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
     )
     source_name: Mapped[str]
+    main_url: Mapped[str | None] = mapped_column(nullable=True)
     is_fix: Mapped[bool]
     binary_treshold: Mapped[float] = mapped_column(nullable=False, default=0.5)
     is_active: Mapped[bool]

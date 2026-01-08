@@ -467,3 +467,21 @@ class QtyDocumentInQdrant(Base):
     __read_only__ = True
 
     document_in_qdrant: Mapped[int] = mapped_column(primary_key=True)
+
+
+class QtyDocumentInQdrantPerCorpus(Base):
+    __tablename__ = "qty_document_in_qdrant_per_corpus"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    source_name: Mapped[str] = mapped_column(primary_key=True)
+    count: Mapped[int]
+
+
+class QtyDocumentPerCorpus(Base):
+    __tablename__ = "qty_document_per_corpus"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    source_name: Mapped[str] = mapped_column(primary_key=True)
+    count: Mapped[int]
