@@ -169,6 +169,7 @@ class Session(Base):
         ForeignKey("user_related.inferred_user.id"),
         nullable=False,
     )
+    origin_referrer: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
@@ -186,6 +187,7 @@ class InferredUser(Base):
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
     )
+    origin_referrer: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
