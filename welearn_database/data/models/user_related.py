@@ -90,7 +90,7 @@ class ChatMessage(Base):
         ForeignKey(f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id"),
         nullable=False,
     )
-    role: str
+    role: Mapped[str]
     textual_content: Mapped[str]
 
     created_at: Mapped[datetime] = mapped_column(
