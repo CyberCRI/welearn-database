@@ -85,11 +85,12 @@ class ChatMessage(Base):
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
     )
-    user_id = mapped_column(
+    inferred_user_id = mapped_column(
         types.Uuid,
-        ForeignKey(f"{DbSchemaEnum.USER_RELATED.value}.user_profile.id"),
+        ForeignKey(f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id"),
         nullable=False,
     )
+    role: str
     textual_content: Mapped[str]
 
     created_at: Mapped[datetime] = mapped_column(
@@ -105,7 +106,7 @@ class ChatMessage(Base):
         server_default="NOW()",
         onupdate=func.localtimestamp(),
     )
-    user: Mapped["UserProfile"] = relationship()
+    inferred_user: Mapped["InferredUser"] = relationship()
 
 
 class ReturnedDocument(Base):
