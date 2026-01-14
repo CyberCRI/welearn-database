@@ -10,9 +10,8 @@ from typing import Sequence, Union
 
 import sqlalchemy
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "e354666f951d"
@@ -80,9 +79,37 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         schema="user_related",
     )
+    op.drop_column("bookmark", "user_id", schema="user_related")
+    op.add_column(
+        "bookmark",
+        sa.Column("inferred_user_id", sa.Uuid(), nullable=True),
+        schema="user_related",
+    )
+    op.create_foreign_key(
+        "bookmark_inferred_user_id_fkey",
+        "bookmark",
+        "inferred_user",
+        ["inferred_user_id"],
+        ["id"],
+        source_schema="user_related",
+        referent_schema="user_related",
+        ondelete="CASCADE",
+    )
 
 
 def downgrade() -> None:
     op.drop_table("endpoint_request", schema="user_related")
     op.drop_table("session", schema="user_related")
     op.drop_table("inferred_user", schema="user_related")
+    op.drop_constraint(
+        "bookmark_inferred_user_id_fkey",
+        "bookmark",
+        schema="user_related",
+        type_="foreignkey",
+    )
+    op.drop_column("bookmark", "inferred_user_id", schema="user_related")
+    op.add_column(
+        "bookmark",
+        sa.Column("user_id", sa.Uuid(), nullable=True),
+        schema="user_related",
+    )
