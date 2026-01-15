@@ -133,6 +133,7 @@ class ReturnedDocument(Base):
         ),
         nullable=False,
     )
+    is_clicked: Mapped[bool]
     welearn_document: Mapped["WeLearnDocument"] = relationship()
     chat_message: Mapped["ChatMessage"] = relationship()
 
