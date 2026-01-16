@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -74,6 +75,14 @@ def run_migrations_online() -> None:
     """
     load_dotenv()
     connectable = create_sqlalchemy_engine()
+
+    if "prod" in os.getenv("PG_HOST").lower():
+        print("Connecting to production database for migrations!")
+        input("Press Enter to continue...")
+    elif "dev" in os.getenv("PG_HOST" "").lower():
+        print("Connecting to development database for migrations!")
+    else:
+        print("Connecting to unknown database for migrations!")
 
     with connectable.connect() as connection:
         context.configure(
