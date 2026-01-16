@@ -85,11 +85,16 @@ class ChatMessage(Base):
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
     )
-    user_id = mapped_column(
+    inferred_user_id = mapped_column(
         types.Uuid,
-        ForeignKey(f"{DbSchemaEnum.USER_RELATED.value}.user_profile.id"),
+        ForeignKey(f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id"),
         nullable=False,
     )
+    conversation_id = mapped_column(
+        types.Uuid,
+        nullable=False,
+    )
+    role: Mapped[str]
     textual_content: Mapped[str]
 
     created_at: Mapped[datetime] = mapped_column(
@@ -105,7 +110,7 @@ class ChatMessage(Base):
         server_default="NOW()",
         onupdate=func.localtimestamp(),
     )
-    user: Mapped["UserProfile"] = relationship()
+    inferred_user: Mapped["InferredUser"] = relationship()
 
 
 class ReturnedDocument(Base):
@@ -128,6 +133,7 @@ class ReturnedDocument(Base):
         ),
         nullable=False,
     )
+    is_clicked: Mapped[bool] = mapped_column(default=False)
     welearn_document: Mapped["WeLearnDocument"] = relationship()
     chat_message: Mapped["ChatMessage"] = relationship()
 
@@ -155,6 +161,23 @@ class APIKeyManagement(Base):
         default=func.localtimestamp(),
         server_default="NOW()",
         onupdate=func.localtimestamp(),
+    )
+
+
+class DataCollectionCampaignManagement(Base):
+    __tablename__ = "data_collection_campaign_management"
+    __table_args__ = {"schema": DbSchemaEnum.USER_RELATED.value}
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    is_active: Mapped[bool]
+    end_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=False), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
     )
 
 
