@@ -116,6 +116,7 @@ class TestUserRelatedCRUD(TestCase):
             conversation_id=uuid.uuid4(),
             role="user",
             textual_content="Bonjour",
+            original_feature_name="chat",
         )
         self.session.add(chat)
         self.session.commit()
@@ -152,6 +153,7 @@ class TestUserRelatedCRUD(TestCase):
             inferred_user_id=inferred_user.id,
             conversation_id=uuid.uuid4(),
             role="user",
+            original_feature_name="chat",
             textual_content="test",
         )
         self.session.add(chat)
@@ -161,7 +163,6 @@ class TestUserRelatedCRUD(TestCase):
             message_id=chat.id,
             document_id=uuid.uuid4(),
             is_clicked=True,
-            original_feature_name="chat",
         )
         self.session.add(returned_doc)
         self.session.commit()
@@ -207,6 +208,7 @@ class TestUserRelatedCRUD(TestCase):
             inferred_user_id=inferred_user.id,
             conversation_id=uuid.uuid4(),
             role="user",
+            original_feature_name="chat",
             textual_content="test",
         )
         self.session.add(chat)
