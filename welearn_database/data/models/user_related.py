@@ -136,7 +136,6 @@ class ReturnedDocument(Base):
     )
     is_clicked: Mapped[bool] = mapped_column(default=False)
     original_feature_name: Mapped[str]
-    conversation_id: Mapped[UUID]
 
     welearn_document: Mapped["WeLearnDocument"] = relationship()
     chat_message: Mapped["ChatMessage"] = relationship()
