@@ -134,6 +134,8 @@ class ReturnedDocument(Base):
         nullable=False,
     )
     is_clicked: Mapped[bool] = mapped_column(default=False)
+    conversation_id: Mapped[UUID]
+
     welearn_document: Mapped["WeLearnDocument"] = relationship()
     chat_message: Mapped["ChatMessage"] = relationship()
 
