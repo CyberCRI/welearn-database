@@ -38,3 +38,8 @@ class ExternalIdType(StrEnum):
     HANDLE = auto()
     SLUG = auto()
     QID = auto()
+
+
+class FilterType(StrEnum):
+    SDG = auto()
+    SOURCE = auto()
