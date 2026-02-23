@@ -96,7 +96,10 @@ class ChatMessage(Base):
     )
     role: Mapped[str]
     textual_content: Mapped[str]
-    is_retrieved_by_user: Mapped[bool] = mapped_column(default=False)
+    is_retrieved_by_user: Mapped[bool] = mapped_column(
+        default=False, server_default="False"
+    )
+    original_feature_name: Mapped[str | None]
 
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
@@ -135,7 +138,6 @@ class ReturnedDocument(Base):
         nullable=False,
     )
     is_clicked: Mapped[bool] = mapped_column(default=False)
-    original_feature_name: Mapped[str]
 
     welearn_document: Mapped["WeLearnDocument"] = relationship()
     chat_message: Mapped["ChatMessage"] = relationship()
