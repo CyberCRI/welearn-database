@@ -2,10 +2,10 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, func, types
-from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from welearn_database.data.enumeration import DbSchemaEnum
+from welearn_database.data.enumeration import DbSchemaEnum, FilterType
 from welearn_database.data.models.document_related import WeLearnDocument
 
 from . import Base
@@ -96,6 +96,10 @@ class ChatMessage(Base):
     )
     role: Mapped[str]
     textual_content: Mapped[str]
+    is_retrieved_by_user: Mapped[bool] = mapped_column(
+        default=False, server_default="False"
+    )
+    original_feature_name: Mapped[str | None]
 
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
@@ -134,6 +138,7 @@ class ReturnedDocument(Base):
         nullable=False,
     )
     is_clicked: Mapped[bool] = mapped_column(default=False)
+
     welearn_document: Mapped["WeLearnDocument"] = relationship()
     chat_message: Mapped["ChatMessage"] = relationship()
 
@@ -240,3 +245,27 @@ class EndpointRequest(Base):
         server_default="NOW()",
     )
     session = relationship("Session", foreign_keys=[session_id])
+
+
+class FilterUsedInQuery(Base):
+    __tablename__ = "filter_used_in_query"
+    __table_args__ = {"schema": DbSchemaEnum.USER_RELATED.value}
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    message_id = mapped_column(
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.USER_RELATED.value}.chat_message.id"),
+        nullable=False,
+    )
+    filter_type: Mapped[str] = mapped_column(
+        ENUM(
+            *(e.value.lower() for e in FilterType),
+            name="filter_type",
+            schema=DbSchemaEnum.USER_RELATED.value,
+        ),
+    )
+    filter_value: Mapped[str]
+
+    chat_message: Mapped["ChatMessage"] = relationship()

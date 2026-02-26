@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from tests.helpers import handle_schema_with_sqlite
+from welearn_database.data.enumeration import FilterType
 from welearn_database.data.models import Base
 from welearn_database.data.models.user_related import (
     APIKeyManagement,
@@ -13,6 +14,7 @@ from welearn_database.data.models.user_related import (
     ChatMessage,
     DataCollectionCampaignManagement,
     EndpointRequest,
+    FilterUsedInQuery,
     InferredUser,
     ReturnedDocument,
 )
@@ -114,12 +116,14 @@ class TestUserRelatedCRUD(TestCase):
             conversation_id=uuid.uuid4(),
             role="user",
             textual_content="Bonjour",
+            original_feature_name="chat",
         )
         self.session.add(chat)
         self.session.commit()
         result = self.session.query(ChatMessage).filter_by(role="user").first()
         self.assertIsNotNone(result)
         self.assertEqual(result.textual_content, "Bonjour")
+        self.assertFalse(result.is_retrieved_by_user)
 
     def test_create_and_read_bookmark(self):
         inferred_user = InferredUser(id=uuid.uuid4())
@@ -149,6 +153,7 @@ class TestUserRelatedCRUD(TestCase):
             inferred_user_id=inferred_user.id,
             conversation_id=uuid.uuid4(),
             role="user",
+            original_feature_name="chat",
             textual_content="test",
         )
         self.session.add(chat)
@@ -193,3 +198,30 @@ class TestUserRelatedCRUD(TestCase):
         )
         self.assertIsNotNone(result)
         self.assertEqual(result.http_code, 200)
+
+    def test_create_and_read_filter_used_in_query(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        chat = ChatMessage(
+            id=uuid.uuid4(),
+            inferred_user_id=inferred_user.id,
+            conversation_id=uuid.uuid4(),
+            role="user",
+            original_feature_name="chat",
+            textual_content="test",
+        )
+        self.session.add(chat)
+        self.session.commit()
+        filter_used = FilterUsedInQuery(
+            id=uuid.uuid4(),
+            message_id=chat.id,
+            filter_type=FilterType.SDG.value,
+            filter_value="13",
+        )
+        self.session.add(filter_used)
+        self.session.commit()
+        result = (
+            self.session.query(FilterUsedInQuery).filter_by(filter_value="13").first()
+        )
+        self.assertIsNotNone(result)
