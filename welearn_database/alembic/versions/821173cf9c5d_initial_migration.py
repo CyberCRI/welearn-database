@@ -258,6 +258,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["user_id"],
             ["user_related.user_profile.id"],
+            name="message_user_id_fkey",
         ),
         sa.PrimaryKeyConstraint("id"),
         schema="user_related",

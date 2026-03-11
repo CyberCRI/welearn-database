@@ -79,8 +79,16 @@ def run_migrations_online() -> None:
     if "prod" in os.getenv("PG_HOST").lower():
         print("Connecting to production database for migrations!")
         input("Press Enter to continue...")
-    elif "dev" in os.getenv("PG_HOST" "").lower():
-        print("Connecting to development database for migrations!")
+    elif (
+        "dev" in os.getenv("PG_HOST" "").lower()
+        and "staging" in os.getenv("PG_DB" "").lower()
+    ):
+        print("Connecting to staging database for migrations!")
+    elif (
+        "dev" in os.getenv("PG_HOST" "").lower()
+        and not "staging" in os.getenv("PG_DB" "").lower()
+    ):
+        print("Connecting to dev database for migrations!")
     else:
         print("Connecting to unknown database for migrations!")
 

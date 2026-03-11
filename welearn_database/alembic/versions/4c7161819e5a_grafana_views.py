@@ -18,6 +18,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade():
+    op.execute("CREATE SCHEMA IF NOT EXISTS grafana;")
+
     op.execute(
         """
     CREATE OR REPLACE VIEW grafana.corpus
@@ -162,6 +164,21 @@ AS SELECT session.id,
     op.execute(
         """
 CREATE OR REPLACE VIEW grafana.document_latest_state
+AS SELECT DISTINCT ON (ps.document_id) ps.id,
+    ps.document_id,
+    wd.corpus_id,
+    wd.lang,
+    ps.title,
+    ps.created_at,
+    ps.operation_order
+   FROM document_related.process_state ps
+     JOIN document_related.welearn_document wd ON ps.document_id = wd.id
+  ORDER BY ps.document_id, ps.operation_order DESC;
+    """
+    )
+    op.execute(
+        """
+CREATE OR REPLACE VIEW grafana.test_document_latest_state
 AS SELECT DISTINCT ON (ps.document_id) ps.id,
     ps.document_id,
     wd.corpus_id,
