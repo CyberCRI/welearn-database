@@ -62,6 +62,7 @@ class WeLearnDocument(Base):
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
     )
+    doi: Mapped[str | None]
     external_id: Mapped[str | None]
     external_id_type: Mapped[str | None] = mapped_column(
         ENUM(
