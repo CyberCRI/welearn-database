@@ -35,6 +35,9 @@ from welearn_database.modules.text_cleaning import clean_text
 
 schema_name = DbSchemaEnum.DOCUMENT_RELATED.value
 
+NOW = "NOW()"
+GEN_RANDOM_UUID = "gen_random_uuid()"
+
 
 class WeLearnDocument(Base):
     """
@@ -60,7 +63,7 @@ class WeLearnDocument(Base):
     )
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     doi: Mapped[str | None]
     external_id: Mapped[str | None]
@@ -87,13 +90,13 @@ class WeLearnDocument(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
         onupdate=func.localtimestamp(),
     )
 
@@ -162,7 +165,7 @@ class ProcessState(Base):
     __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -181,7 +184,7 @@ class ProcessState(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     operation_order = mapped_column(
         types.BIGINT,
@@ -199,14 +202,14 @@ class Keyword(Base):
     )
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     keyword: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
 
 
@@ -221,7 +224,7 @@ class WeLearnDocumentKeyword(Base):
         {"schema": schema_name},
     )
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     welearn_document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -243,7 +246,7 @@ class ErrorRetrieval(Base):
     __table_args__ = ({"schema": schema_name},)
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
 
     document_id: Mapped[UUID] = mapped_column(
@@ -259,13 +262,13 @@ class ErrorRetrieval(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
         onupdate=func.localtimestamp(),
     )
     error_info: Mapped[str]
@@ -281,7 +284,7 @@ class ErrorDataQuality(Base):
         types.Uuid,
         primary_key=True,
         nullable=False,
-        server_default="gen_random_uuid()",
+        server_default=GEN_RANDOM_UUID,
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -305,7 +308,7 @@ class ErrorDataQuality(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     document: Mapped["WeLearnDocument"] = relationship(cascade="all, delete")
     slice: Mapped["DocumentSlice"] = relationship(cascade="all, delete")
@@ -316,7 +319,7 @@ class DocumentSlice(Base):
     __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -346,7 +349,7 @@ class AnalyticCounter(Base):
     __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -362,13 +365,13 @@ class AnalyticCounter(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
         onupdate=func.localtimestamp(),
     )
     document: Mapped["WeLearnDocument"] = relationship()
@@ -382,7 +385,7 @@ class Sdg(Base):
         types.Uuid,
         primary_key=True,
         nullable=False,
-        server_default="gen_random_uuid()",
+        server_default=GEN_RANDOM_UUID,
     )
     slice_id = mapped_column(
         types.Uuid,
@@ -397,7 +400,7 @@ class Sdg(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
 
     bi_classifier_model_id = mapped_column(
@@ -419,7 +422,7 @@ class ContextDocument(Base):
     id = mapped_column(
         types.Uuid,
         primary_key=True,
-        server_default="gen_random_uuid()",
+        server_default=GEN_RANDOM_UUID,
         nullable=False,
     )
     url: Mapped[str]
@@ -434,7 +437,7 @@ class ContextDocument(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     embedding: Mapped[bytes] = mapped_column(LargeBinary)
 
