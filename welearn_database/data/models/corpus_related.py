@@ -106,9 +106,13 @@ class CorpusNameEmbeddingModelLang(Base):
     __tablename__ = "corpus_name_embedding_model_lang"
     __table_args__ = {"schema": schema_name}
     __read_only__ = True
-    source_name: Mapped[str] = mapped_column(primary_key=True)
+    source_name: Mapped[str] = mapped_column()
+    corpus_id: Mapped[UUID] = mapped_column(primary_key=True)
+    embedding_model_id: Mapped[UUID]
     title: Mapped[str]
-    lang: Mapped[str]
+    lang: Mapped[str] = mapped_column(primary_key=True)
+    used_since: Mapped[datetime]
+    category_id: Mapped[UUID]
 
 
 class CorpusEmbeddingModel(Base):
