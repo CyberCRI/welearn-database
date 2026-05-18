@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
@@ -30,16 +31,23 @@ from welearn_database.data.models.corpus_related import (
     EmbeddingModel,
     NClassifierModel,
 )
-from welearn_database.exceptions import InvalidURLScheme
+from welearn_database.exceptions import ContentIsTooShort, InvalidDOI, InvalidURLScheme
 from welearn_database.modules.text_cleaning import clean_text
+from welearn_database.regular_expression import DOI_VALIDATION_REGEX
 
 schema_name = DbSchemaEnum.DOCUMENT_RELATED.value
+
+NOW = "NOW()"
+GEN_RANDOM_UUID = "gen_random_uuid()"
 
 
 class WeLearnDocument(Base):
     """
     This class represents a document in the WeLearn system.
     :cvar id: The unique identifier of the document.
+    :cvar doi: The unique DOI identifier if it exist for this document
+    :cvar external_id: ID use by the document provider for identify it (ex: PubMed ID, ArXiv ID, OAI PMH identifier etc.)
+    :cvar external_id_type: The type of the external ID, represented as an enumeration
     :cvar url: The URL of the document.
     :cvar title: The title of the document.
     :cvar lang: The language of the document.
@@ -60,8 +68,9 @@ class WeLearnDocument(Base):
     )
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
+    doi: Mapped[str | None]
     external_id: Mapped[str | None]
     external_id_type: Mapped[str | None] = mapped_column(
         ENUM(
@@ -86,13 +95,13 @@ class WeLearnDocument(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
         onupdate=func.localtimestamp(),
     )
 
@@ -127,7 +136,7 @@ class WeLearnDocument(Base):
             return value
         cleaned = clean_text(value)
         if len(value) < 25:
-            raise ValueError(f"Content is too short : {len(value)}")
+            raise ContentIsTooShort(f"Content is too short : {len(value)}")
 
         # Hash compute and db storage
         self.trace = adler32(cleaned.encode("utf-8"))
@@ -145,6 +154,16 @@ class WeLearnDocument(Base):
             return value
         return clean_text(value)
 
+    @validates("doi")
+    def validate_doi(self, key, value):
+        """"""
+        if not value:
+            return value
+
+        if not re.match(DOI_VALIDATION_REGEX, value):
+            raise InvalidDOI(f"DOI is not valid : {value}")
+        return value
+
 
 class ProcessState(Base):
     """
@@ -161,7 +180,7 @@ class ProcessState(Base):
     __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -180,7 +199,7 @@ class ProcessState(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     operation_order = mapped_column(
         types.BIGINT,
@@ -198,14 +217,14 @@ class Keyword(Base):
     )
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     keyword: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
 
 
@@ -220,7 +239,7 @@ class WeLearnDocumentKeyword(Base):
         {"schema": schema_name},
     )
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     welearn_document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -242,7 +261,7 @@ class ErrorRetrieval(Base):
     __table_args__ = ({"schema": schema_name},)
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
 
     document_id: Mapped[UUID] = mapped_column(
@@ -258,13 +277,13 @@ class ErrorRetrieval(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
         onupdate=func.localtimestamp(),
     )
     error_info: Mapped[str]
@@ -280,7 +299,7 @@ class ErrorDataQuality(Base):
         types.Uuid,
         primary_key=True,
         nullable=False,
-        server_default="gen_random_uuid()",
+        server_default=GEN_RANDOM_UUID,
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -304,7 +323,7 @@ class ErrorDataQuality(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     document: Mapped["WeLearnDocument"] = relationship(cascade="all, delete")
     slice: Mapped["DocumentSlice"] = relationship(cascade="all, delete")
@@ -315,7 +334,7 @@ class DocumentSlice(Base):
     __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -345,7 +364,7 @@ class AnalyticCounter(Base):
     __table_args__ = {"schema": schema_name}
 
     id: Mapped[UUID] = mapped_column(
-        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+        types.Uuid, primary_key=True, nullable=False, server_default=GEN_RANDOM_UUID
     )
     document_id: Mapped[UUID] = mapped_column(
         types.Uuid,
@@ -361,13 +380,13 @@ class AnalyticCounter(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
         onupdate=func.localtimestamp(),
     )
     document: Mapped["WeLearnDocument"] = relationship()
@@ -381,7 +400,7 @@ class Sdg(Base):
         types.Uuid,
         primary_key=True,
         nullable=False,
-        server_default="gen_random_uuid()",
+        server_default=GEN_RANDOM_UUID,
     )
     slice_id = mapped_column(
         types.Uuid,
@@ -396,7 +415,7 @@ class Sdg(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
 
     bi_classifier_model_id = mapped_column(
@@ -418,7 +437,7 @@ class ContextDocument(Base):
     id = mapped_column(
         types.Uuid,
         primary_key=True,
-        server_default="gen_random_uuid()",
+        server_default=GEN_RANDOM_UUID,
         nullable=False,
     )
     url: Mapped[str]
@@ -433,7 +452,7 @@ class ContextDocument(Base):
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
-        server_default="NOW()",
+        server_default=NOW,
     )
     embedding: Mapped[bytes] = mapped_column(LargeBinary)
 
