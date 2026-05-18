@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
@@ -134,7 +135,7 @@ class WeLearnDocument(Base):
             return value
         cleaned = clean_text(value)
         if len(value) < 25:
-            raise ValueError(f"Content is too short : {len(value)}")
+            raise ContentIsTooShort(f"Content is too short : {len(value)}")
 
         # Hash compute and db storage
         self.trace = adler32(cleaned.encode("utf-8"))
@@ -151,6 +152,16 @@ class WeLearnDocument(Base):
         if not value:
             return value
         return clean_text(value)
+
+    @validates("doi")
+    def validate_doi(self, key, value):
+        """"""
+        if not value:
+            return value
+
+        if not re.match(DOI_VALIDATION_REGEX, value):
+            raise InvalidDOI(f"DOI is not valid : {value}")
+        return value
 
 
 class ProcessState(Base):

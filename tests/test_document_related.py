@@ -14,7 +14,7 @@ from welearn_database.data.models.document_related import (
     ProcessState,
     WeLearnDocument,
 )
-from welearn_database.exceptions import InvalidURLScheme
+from welearn_database.exceptions import ContentIsTooShort, InvalidDOI, InvalidURLScheme
 
 
 class TestWeLearnDocument(TestCase):
@@ -72,7 +72,7 @@ class TestWeLearnDocument(TestCase):
         )
 
     def test_validate_too_short_full_content(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ContentIsTooShort):
             WeLearnDocument(
                 title="Test Document",
                 url="https://example.com/test-document",
@@ -98,6 +98,52 @@ class TestWeLearnDocument(TestCase):
             test_doc.full_content,
             "This is a test document, used for unit testing, please ignore. Thank you!",
         )
+
+    def test_doi(self):
+        test_doc = WeLearnDocument(
+            title="Test Document",
+            url="https://example.com/test-document",
+            full_content="This is a test document, used for unit testing, please ignore. Thank you!",
+            description="A short description of the test document.",
+            lang="en",
+            corpus="Test Corpus",
+            details={"author": "Test Author", "doi": "10.1000/xyz123"},
+            doi="10.1000/xyz123",
+        )
+
+        self.assertEqual(test_doc.doi, "10.1000/xyz123")
+
+    def test_invalid_doi(self):
+        with self.assertRaises(InvalidDOI):
+            WeLearnDocument(
+                title="Test Document",
+                url="https://example.com/test-document",
+                full_content="This is a test document, used for unit testing, please ignore. Thank you!",
+                description="A short description of the test document.",
+                lang="en",
+                corpus="Test Corpus",
+                details={
+                    "author": "Test Author",
+                    "doi": "11.1590/s0100-879x2002000500007",
+                },
+                doi="11.1590/s0100-879x2002000500007",
+            )
+
+    def test_unclean_doi(self):
+        with self.assertRaises(InvalidDOI):
+            WeLearnDocument(
+                title="Test Document",
+                url="https://example.com/test-document",
+                full_content="This is a test document, used for unit testing, please ignore. Thank you!",
+                description="A short description of the test document.",
+                lang="en",
+                corpus="Test Corpus",
+                details={
+                    "author": "Test Author",
+                    "doi": "https://doi.org/10.1000/xyz123",
+                },
+                doi="https://doi.org/10.1000/xyz123",
+            )
 
     def test_description(self):
         test_doc = WeLearnDocument(
@@ -284,7 +330,9 @@ class TestWeLearnDocument(TestCase):
             .first()
         )
         self.assertIsNotNone(doc_from_db)
-        self.assertEqual(doc_from_db.trace, None)
+        self.assertIsNone(
+            doc_from_db.trace,
+        )
 
     def test_view_qty_document(self):
         engine = create_engine("sqlite://")
@@ -335,9 +383,7 @@ class TestWeLearnDocument(TestCase):
         test_session.execute(text("DROP TABLE IF EXISTS qty_document_in_qdrant"))
         test_session.commit()
 
-        test_session.execute(
-            text(
-                """
+        test_session.execute(text("""
             CREATE VIEW document_related.qty_document_in_qdrant AS
             SELECT COUNT(1) AS document_in_qdrant
             FROM (
@@ -346,9 +392,7 @@ class TestWeLearnDocument(TestCase):
                 WHERE title = 'document_in_qdrant'
                 GROUP BY document_id
             ) latest;
-        """
-            )
-        )
+        """))
         test_session.commit()
 
         result = test_session.query(QtyDocumentInQdrant).first()
