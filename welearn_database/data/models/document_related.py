@@ -43,6 +43,9 @@ class WeLearnDocument(Base):
     """
     This class represents a document in the WeLearn system.
     :cvar id: The unique identifier of the document.
+    :cvar doi: The unique DOI identifier if it exist for this document
+    :cvar external_id: ID use by the document provider for identify it (ex: PubMed ID, ArXiv ID, OAI PMH identifier etc.)
+    :cvar external_id_type: The type of the external ID, represented as an enumeration
     :cvar url: The URL of the document.
     :cvar title: The title of the document.
     :cvar lang: The language of the document.
