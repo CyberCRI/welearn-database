@@ -31,8 +31,9 @@ from welearn_database.data.models.corpus_related import (
     EmbeddingModel,
     NClassifierModel,
 )
-from welearn_database.exceptions import InvalidURLScheme
+from welearn_database.exceptions import ContentIsTooShort, InvalidDOI, InvalidURLScheme
 from welearn_database.modules.text_cleaning import clean_text
+from welearn_database.regular_expression import DOI_VALIDATION_REGEX
 
 schema_name = DbSchemaEnum.DOCUMENT_RELATED.value
 
