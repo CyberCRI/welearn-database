@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKey, func, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from welearn_database.data.enumeration import DbSchemaEnum, FilterType
+from welearn_database.data.enumeration import DbSchemaEnum, FilterType, UniversityRole
 from welearn_database.data.models.document_related import WeLearnDocument
 
 from . import Base
@@ -216,6 +216,15 @@ class InferredUser(Base):
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
     )
     origin_referrer: Mapped[str | None]
+    university_title: Mapped[str | None]
+    role: Mapped[str] = mapped_column(
+        ENUM(
+            *(r.value.lower() for r in UniversityRole),
+            name="university_role",
+            schema="user_related",
+        ),
+        nullable=False,
+    )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
