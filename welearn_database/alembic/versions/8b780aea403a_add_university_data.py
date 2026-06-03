@@ -20,6 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    op.execute("""
+    CREATE TYPE user_related.university_role AS ENUM ('student', 'teacher', 'staff')
+    """)
     op.add_column(
         "inferred_user",
         sa.Column("university_title", sa.String(), nullable=True),
