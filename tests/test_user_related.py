@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from tests.helpers import handle_schema_with_sqlite
-from welearn_database.data.enumeration import FilterType
+from welearn_database.data.enumeration import FilterType, UniversityRole
 from welearn_database.data.models import Base
 from welearn_database.data.models.user_related import (
     APIKeyManagement,
@@ -22,6 +22,7 @@ from welearn_database.data.models.user_related import Session as UserSession
 from welearn_database.data.models.user_related import (
     UserProfile,
 )
+from welearn_database.exceptions import EarlyEnumerationVerificationError
 
 
 class TestUserRelatedCRUD(TestCase):
@@ -62,6 +63,32 @@ class TestUserRelatedCRUD(TestCase):
             .first()
         )
         self.assertIsNotNone(result)
+
+    def test_create_and_read_inferred_user_with_university_data(self):
+        inferred_user = InferredUser(
+            id=uuid.uuid4(),
+            origin_referrer="test_ref",
+            university_title="test_university",
+            role=UniversityRole.STUDENT.value,
+        )
+        self.session.add(inferred_user)
+        self.session.commit()
+        result = (
+            self.session.query(InferredUser)
+            .filter_by(origin_referrer="test_ref")
+            .first()
+        )
+        self.assertEqual(result.university_title, "test_university")
+        self.assertEqual(result.role, UniversityRole.STUDENT.value)
+
+    def test_create_and_read_inferred_user_with_invorrect_university_data(self):
+        with self.assertRaises(EarlyEnumerationVerificationError):
+            InferredUser(
+                id=uuid.uuid4(),
+                origin_referrer="test_ref",
+                university_title="test_university",
+                role="incorrect_role",
+            )
 
     def test_create_and_read_session(self):
         inferred_user = InferredUser(id=uuid.uuid4())

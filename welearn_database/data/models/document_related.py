@@ -11,7 +11,6 @@ from sqlalchemy import (
     LargeBinary,
     UniqueConstraint,
     func,
-    text,
     types,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, TIMESTAMP

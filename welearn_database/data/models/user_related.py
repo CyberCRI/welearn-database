@@ -3,11 +3,12 @@ from uuid import UUID
 
 from sqlalchemy import ForeignKey, func, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from welearn_database.data.enumeration import DbSchemaEnum, FilterType, UniversityRole
 from welearn_database.data.models.document_related import WeLearnDocument
 
+from ...exceptions import EarlyEnumerationVerificationError
 from . import Base
 
 schema_name = DbSchemaEnum.USER_RELATED.value
@@ -231,6 +232,13 @@ class InferredUser(Base):
         default=func.localtimestamp(),
         server_default="NOW()",
     )
+
+    @validates("role")
+    def validate_role(self, key, value):
+        valid_roles = {r.value.lower() for r in UniversityRole}
+        if value not in valid_roles:
+            raise EarlyEnumerationVerificationError(f"Invalid role: {value}")
+        return value
 
 
 class EndpointRequest(Base):
