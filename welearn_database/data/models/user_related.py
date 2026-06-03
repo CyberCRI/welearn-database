@@ -224,7 +224,7 @@ class InferredUser(Base):
             name="university_role",
             schema="user_related",
         ),
-        nullable=False,
+        nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
