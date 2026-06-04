@@ -3,12 +3,11 @@ from uuid import UUID
 
 from sqlalchemy import ForeignKey, func, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from welearn_database.data.enumeration import DbSchemaEnum, FilterType, UniversityRole
+from welearn_database.data.enumeration import DbSchemaEnum, FilterType
 from welearn_database.data.models.document_related import WeLearnDocument
 
-from ...exceptions import EarlyEnumerationVerificationError
 from . import Base
 
 schema_name = DbSchemaEnum.USER_RELATED.value

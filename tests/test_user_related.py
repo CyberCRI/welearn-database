@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from tests.helpers import handle_schema_with_sqlite
-from welearn_database.data.enumeration import FilterType, UniversityRole
+from welearn_database.data.enumeration import FilterType
 from welearn_database.data.models import Base
 from welearn_database.data.models.user_related import (
     APIKeyManagement,
