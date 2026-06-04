@@ -69,7 +69,7 @@ class TestUserRelatedCRUD(TestCase):
             id=uuid.uuid4(),
             origin_referrer="test_ref",
             university_title="test_university",
-            role=UniversityRole.STUDENT.value,
+            role="student",
         )
         self.session.add(inferred_user)
         self.session.commit()
@@ -79,16 +79,7 @@ class TestUserRelatedCRUD(TestCase):
             .first()
         )
         self.assertEqual(result.university_title, "test_university")
-        self.assertEqual(result.role, UniversityRole.STUDENT.value)
-
-    def test_create_and_read_inferred_user_with_invorrect_university_data(self):
-        with self.assertRaises(EarlyEnumerationVerificationError):
-            InferredUser(
-                id=uuid.uuid4(),
-                origin_referrer="test_ref",
-                university_title="test_university",
-                role="incorrect_role",
-            )
+        self.assertEqual(result.role, "student")
 
     def test_create_and_read_session(self):
         inferred_user = InferredUser(id=uuid.uuid4())

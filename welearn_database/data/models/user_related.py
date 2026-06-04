@@ -218,27 +218,13 @@ class InferredUser(Base):
     )
     origin_referrer: Mapped[str | None]
     university_title: Mapped[str | None]
-    role: Mapped[str] = mapped_column(
-        ENUM(
-            *(r.value.lower() for r in UniversityRole),
-            name="university_role",
-            schema="user_related",
-        ),
-        nullable=True,
-    )
+    role: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
         default=func.localtimestamp(),
         server_default="NOW()",
     )
-
-    @validates("role")
-    def validate_role(self, key, value):
-        valid_roles = {r.value.lower() for r in UniversityRole}
-        if value not in valid_roles:
-            raise EarlyEnumerationVerificationError(f"Invalid role: {value}")
-        return value
 
 
 class EndpointRequest(Base):

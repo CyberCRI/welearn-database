@@ -43,9 +43,3 @@ class ExternalIdType(StrEnum):
 class FilterType(StrEnum):
     SDG = auto()
     SOURCE = auto()
-
-
-class UniversityRole(StrEnum):
-    STUDENT = auto()
-    TEACHER = auto()
-    STAFF = auto()

@@ -20,9 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("""
-    CREATE TYPE user_related.university_role AS ENUM ('student', 'teacher', 'staff')
-    """)
+    # op.execute("""
+    # CREATE TYPE user_related.university_role AS ENUM ('student', 'teacher', 'staff')
+    # """)
     op.add_column(
         "inferred_user",
         sa.Column("university_title", sa.String(), nullable=True),
@@ -32,13 +32,7 @@ def upgrade() -> None:
         "inferred_user",
         sa.Column(
             "role",
-            postgresql.ENUM(
-                "student",
-                "teacher",
-                "staff",
-                name="university_role",
-                schema="user_related",
-            ),
+            sa.String(),
             nullable=True,
         ),
         schema="user_related",
@@ -48,4 +42,3 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_column("inferred_user", "university_title", schema="user_related")
     op.drop_column("inferred_user", "role", schema="user_related")
-    op.execute("DROP TYPE user_related.university_role")
