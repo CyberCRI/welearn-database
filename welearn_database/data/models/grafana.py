@@ -136,3 +136,18 @@ class Session(Base):
     created_at: Mapped[datetime] = mapped_column()
     end_at: Mapped[datetime | None] = mapped_column(nullable=True)
     host: Mapped[str | None] = mapped_column(nullable=True)
+
+
+class UsedFeaturePerSession(Base):
+    __tablename__ = "used_feature_per_session"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    inferred_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True
+    )
+    session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    feature_name: Mapped[str] = mapped_column(primary_key=True)
+    cnt: Mapped[int] = mapped_column()
+    is_feature_used: Mapped[bool] = mapped_column()
+    session_created_at: Mapped[datetime] = mapped_column()

@@ -11,6 +11,9 @@ from welearn_database.data.models import Base, QtyDocumentInQdrant
 from welearn_database.data.models.corpus_related import Category, Corpus
 from welearn_database.data.models.document_related import (
     ErrorDataQuality,
+    HistoricalQtyDocumentInQdrant,
+    HistoricalQtyDocumentInQdrantPerCorpus,
+    HistoricalQtyDocumentPerCorpus,
     ProcessState,
     WeLearnDocument,
 )
@@ -467,3 +470,66 @@ class TestWeLearnDocument(TestCase):
         self.assertEqual(error_from_db.error_info, "Test Error")
         self.assertEqual(error_from_db.error_raiser, "welearn_database_test")
         self.assertEqual(error_from_db.document.id, doc_ids[0])
+
+    def test_historical_qty_document_per_corpus(self):
+        engine = create_engine("sqlite://")
+        s_maker = sessionmaker(engine)
+        handle_schema_with_sqlite(engine)
+
+        test_session = s_maker()
+        Base.metadata.create_all(test_session.get_bind())
+
+        test_hqdpc = HistoricalQtyDocumentPerCorpus(
+            id=uuid.uuid4(),
+            source_name="corpus_test",
+            quantity=100,
+        )
+        test_session.add(test_hqdpc)
+        test_session.commit()
+
+        hqpdc_from_db = test_session.query(HistoricalQtyDocumentPerCorpus).first()
+
+        self.assertEqual(hqpdc_from_db.source_name, "corpus_test")
+        self.assertEqual(hqpdc_from_db.quantity, 100)
+
+    def test_historical_qty_document_in_qdrant_per_corpus(self):
+        engine = create_engine("sqlite://")
+        s_maker = sessionmaker(engine)
+        handle_schema_with_sqlite(engine)
+
+        test_session = s_maker()
+        Base.metadata.create_all(test_session.get_bind())
+
+        test_hqdpc = HistoricalQtyDocumentInQdrantPerCorpus(
+            id=uuid.uuid4(),
+            source_name="corpus_test",
+            quantity=100,
+        )
+        test_session.add(test_hqdpc)
+        test_session.commit()
+
+        hqdiqpc_from_db = test_session.query(
+            HistoricalQtyDocumentInQdrantPerCorpus
+        ).first()
+
+        self.assertEqual(hqdiqpc_from_db.source_name, "corpus_test")
+        self.assertEqual(hqdiqpc_from_db.quantity, 100)
+
+    def test_historical_qty_document_in_qdrant(self):
+        engine = create_engine("sqlite://")
+        s_maker = sessionmaker(engine)
+        handle_schema_with_sqlite(engine)
+
+        test_session = s_maker()
+        Base.metadata.create_all(test_session.get_bind())
+
+        test_hqdpc = HistoricalQtyDocumentInQdrant(
+            id=uuid.uuid4(),
+            quantity=100,
+        )
+        test_session.add(test_hqdpc)
+        test_session.commit()
+
+        hqdiq_from_db = test_session.query(HistoricalQtyDocumentInQdrant).first()
+
+        self.assertEqual(hqdiq_from_db.quantity, 100)
