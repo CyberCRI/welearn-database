@@ -75,7 +75,7 @@ SELECT
 	sfp.feature_name,
 	COALESCE(ac.cnt, 0) AS cnt,
 	COALESCE(ac.cnt, 0) > 0 AS is_feature_used,
-	s.created_at
+	s.created_at AS session_created_at,
 FROM
 	session_feature_pair sfp
 LEFT JOIN actual_count ac ON

@@ -44,7 +44,7 @@ class WeLearnDocument(Base):
     """
     This class represents a document in the WeLearn system.
     :cvar id: The unique identifier of the document.
-    :cvar doi: The unique DOI identifier if it exist for this document
+    :cvar doi: The unique DOI identifier if it exists for this document
     :cvar external_id: ID use by the document provider for identify it (ex: PubMed ID, ArXiv ID, OAI PMH identifier etc.)
     :cvar external_id_type: The type of the external ID, represented as an enumeration
     :cvar url: The URL of the document.
@@ -475,6 +475,65 @@ class ContextDocument(Base):
     __table_args__ = (
         UniqueConstraint("url", name="meta_document_url_key"),
         {"schema": "document_related"},
+    )
+
+
+class HistoricalQtyDocumentPerCorpus(Base):
+    __tablename__ = "historical_qty_document_per_corpus"
+    __table_args__ = {"schema": schema_name}
+
+    id = mapped_column(
+        types.Uuid,
+        primary_key=True,
+        server_default=GEN_RANDOM_UUID,
+        nullable=False,
+    )
+    source_name: Mapped[str] = mapped_column(primary_key=True)
+    count: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default=NOW,
+    )
+
+
+class HistoricalQtyDocumentInQdrantPerCorpus(Base):
+    __tablename__ = "historical_qty_document_in_qdrant_per_corpus"
+    __table_args__ = {"schema": schema_name}
+
+    id = mapped_column(
+        types.Uuid,
+        primary_key=True,
+        server_default=GEN_RANDOM_UUID,
+        nullable=False,
+    )
+    source_name: Mapped[str] = mapped_column(primary_key=True)
+    count: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default=NOW,
+    )
+
+
+class HistoricalQtyDocumentInQdrant(Base):
+    __tablename__ = "historical_qty_document_in_qdrant"
+    __table_args__ = {"schema": schema_name}
+
+    id = mapped_column(
+        types.Uuid,
+        primary_key=True,
+        server_default=GEN_RANDOM_UUID,
+        nullable=False,
+    )
+    quantity: Mapped[int]
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default=NOW,
     )
 
 
