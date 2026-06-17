@@ -26,19 +26,13 @@ SELECT
 	feature_name
 FROM
 	(
-VALUES ('/api/v1/search/by_document',
-'search'),
-('/api/v1/qna/chat/answer',
-'chat'),
-('/api/v1/qna/chat/agent',
-'chat'),
-('/api/v1/tutor/syllabus',
-'syllabus'
-),
-('/api/v1/user/bookmarks/:document_id',
-'bookmark'),
-('/api/v1/user/:user_id/bookmarks/:document_id',
-'bookmark')
+VALUES
+	('/api/v1/search/by_document', 'search'),
+	('/api/v1/qna/chat/answer', 'chat'),
+	('/api/v1/qna/chat/agent', 'chat'),
+	('/api/v1/tutor/syllabus', 'syllabus'),
+	('/api/v1/user/bookmarks/:document_id', 'bookmark'),
+	('/api/v1/user/:user_id/bookmarks/:document_id', 'bookmark')
 	) AS t(endpoint_name, feature_name)
 ),
 session_feature_pair AS (
@@ -75,7 +69,7 @@ SELECT
 	sfp.feature_name,
 	COALESCE(ac.cnt, 0) AS cnt,
 	COALESCE(ac.cnt, 0) > 0 AS is_feature_used,
-	s.created_at AS session_created_at,
+	s.created_at AS session_created_at
 FROM
 	session_feature_pair sfp
 LEFT JOIN actual_count ac ON
@@ -84,11 +78,11 @@ LEFT JOIN actual_count ac ON
 INNER JOIN user_related."session" s ON
 	s.id = sfp.session_id
 ORDER BY
-	created_at 
+	session_created_at
         """)
 
 
 def downgrade() -> None:
     op.execute("""
-    DROP VIEW IF EXISTS grafana_used_feature_per_session
+    DROP VIEW IF EXISTS grafana.used_feature_per_session;
     """)

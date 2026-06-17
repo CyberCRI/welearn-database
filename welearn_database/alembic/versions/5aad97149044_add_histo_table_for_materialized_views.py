@@ -31,6 +31,7 @@ def upgrade() -> None:
         sa.Column(
             "created_at", postgresql.TIMESTAMP(), server_default="NOW()", nullable=False
         ),
+        sa.PrimaryKeyConstraint("id"),
         schema="document_related",
     )
 
@@ -44,6 +45,7 @@ def upgrade() -> None:
         sa.Column(
             "created_at", postgresql.TIMESTAMP(), server_default="NOW()", nullable=False
         ),
+        sa.PrimaryKeyConstraint("id"),
         schema="document_related",
     )
 
@@ -56,6 +58,7 @@ def upgrade() -> None:
         sa.Column(
             "created_at", postgresql.TIMESTAMP(), server_default="NOW()", nullable=False
         ),
+        sa.PrimaryKeyConstraint("id"),
         schema="document_related",
     )
 

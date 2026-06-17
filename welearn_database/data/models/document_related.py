@@ -488,8 +488,8 @@ class HistoricalQtyDocumentPerCorpus(Base):
         server_default=GEN_RANDOM_UUID,
         nullable=False,
     )
-    source_name: Mapped[str] = mapped_column(primary_key=True)
-    count: Mapped[int]
+    source_name: Mapped[str] = mapped_column()
+    quantity: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,
@@ -508,8 +508,8 @@ class HistoricalQtyDocumentInQdrantPerCorpus(Base):
         server_default=GEN_RANDOM_UUID,
         nullable=False,
     )
-    source_name: Mapped[str] = mapped_column(primary_key=True)
-    count: Mapped[int]
+    source_name: Mapped[str] = mapped_column()
+    quantity: Mapped[int]
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
         nullable=False,

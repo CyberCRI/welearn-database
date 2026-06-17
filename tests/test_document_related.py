@@ -482,7 +482,7 @@ class TestWeLearnDocument(TestCase):
         test_hqdpc = HistoricalQtyDocumentPerCorpus(
             id=uuid.uuid4(),
             source_name="corpus_test",
-            count=100,
+            quantity=100,
         )
         test_session.add(test_hqdpc)
         test_session.commit()
@@ -490,7 +490,7 @@ class TestWeLearnDocument(TestCase):
         hqpdc_from_db = test_session.query(HistoricalQtyDocumentPerCorpus).first()
 
         self.assertEqual(hqpdc_from_db.source_name, "corpus_test")
-        self.assertEqual(hqpdc_from_db.count, 100)
+        self.assertEqual(hqpdc_from_db.quantity, 100)
 
     def test_historical_qty_document_in_qdrant_per_corpus(self):
         engine = create_engine("sqlite://")
@@ -503,7 +503,7 @@ class TestWeLearnDocument(TestCase):
         test_hqdpc = HistoricalQtyDocumentInQdrantPerCorpus(
             id=uuid.uuid4(),
             source_name="corpus_test",
-            count=100,
+            quantity=100,
         )
         test_session.add(test_hqdpc)
         test_session.commit()
@@ -513,7 +513,7 @@ class TestWeLearnDocument(TestCase):
         ).first()
 
         self.assertEqual(hqdiqpc_from_db.source_name, "corpus_test")
-        self.assertEqual(hqdiqpc_from_db.count, 100)
+        self.assertEqual(hqdiqpc_from_db.quantity, 100)
 
     def test_historical_qty_document_in_qdrant(self):
         engine = create_engine("sqlite://")
