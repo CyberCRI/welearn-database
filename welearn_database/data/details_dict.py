@@ -5,10 +5,11 @@ from sqlalchemy import types
 
 class DetailsDict(types.TypeDecorator):
     """
-    Convert all dataclass into dict
+    Convert dataclass instances into dictionaries for JSON storage.
     """
 
     impl = types.JSON
+    cache_ok = True
 
     @staticmethod
     def _is_dataclass_instance(obj):
@@ -25,20 +26,5 @@ class DetailsDict(types.TypeDecorator):
         return value
 
     def process_bind_param(self, value, dialect):
-        if isinstance(value, dict):
-            for detail_key, detail_value in value.items():
-                match detail_value:
-                    case list():
-                        value[detail_key] = [
-                            self._inner_serialize_dataclass(item)
-                            for item in detail_value
-                        ]
-                    case dict():
-                        for k, v in detail_value.items():
-                            detail_value[k] = self._inner_serialize_dataclass(v)
-                        value[detail_key] = detail_value
-                    case _:
-                        value[detail_key] = self._inner_serialize_dataclass(
-                            detail_value
-                        )
-        return value
+        # Serialize recursively without mutating the original object stored on the ORM instance.
+        return self._inner_serialize_dataclass(value)
