@@ -16,6 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY, ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from welearn_database.data.details_dict import DetailsDict
 from welearn_database.data.enumeration import (
     ContextType,
     Counter,
@@ -83,7 +84,7 @@ class WeLearnDocument(Base):
     lang: Mapped[str | None]
     description: Mapped[str | None]
     full_content: Mapped[str | None]
-    details: Mapped[dict[str, Any] | None]
+    details: Mapped[dict[str, Any] | None] = mapped_column(DetailsDict)
     trace: Mapped[int | None] = mapped_column(types.BIGINT)
     corpus_id: Mapped[UUID] = mapped_column(
         types.Uuid,
