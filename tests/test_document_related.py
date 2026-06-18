@@ -1,4 +1,5 @@
 import uuid
+from dataclasses import dataclass
 from unittest import TestCase
 from zlib import adler32
 
@@ -20,6 +21,12 @@ from welearn_database.data.models.document_related import (
 from welearn_database.exceptions import ContentIsTooShort, InvalidDOI, InvalidURLScheme
 
 
+@dataclass
+class AuthorDetails:
+    name: str
+    misc: str
+
+
 class TestWeLearnDocument(TestCase):
     def test_validate_url(self):
         test_doc = WeLearnDocument(
@@ -29,7 +36,7 @@ class TestWeLearnDocument(TestCase):
             description="A short description of the test document.",
             lang="en",
             corpus="Test Corpus",
-            details={"author": "Test Author"},
+            details={"author": AuthorDetails(name="Test Author", misc="")},
         )
 
         self.assertEqual(test_doc.url, "https://example.com/test-document")
@@ -43,7 +50,7 @@ class TestWeLearnDocument(TestCase):
                 description="A short description of the test document.",
                 lang="en",
                 corpus="Test Corpus",
-                details={"author": "Test Author"},
+                details={"author": AuthorDetails(name="Test Author", misc="")},
             )
 
     def test_validate_wrong_url(self):
@@ -55,7 +62,7 @@ class TestWeLearnDocument(TestCase):
                 description="A short description of the test document.",
                 lang="en",
                 corpus="Test Corpus",
-                details={"author": "Test Author"},
+                details={"author": AuthorDetails(name="Test Author", misc="")},
             )
 
     def test_validate_full_content(self):
@@ -66,7 +73,7 @@ class TestWeLearnDocument(TestCase):
             description="A short description of the test document.",
             lang="en",
             corpus="Test Corpus",
-            details={"author": "Test Author"},
+            details={"author": AuthorDetails(name="Test Author", misc="")},
         )
 
         self.assertEqual(
@@ -83,7 +90,7 @@ class TestWeLearnDocument(TestCase):
                 description="A short description of the test document.",
                 lang="en",
                 corpus="Test Corpus",
-                details={"author": "Test Author"},
+                details={"author": AuthorDetails(name="Test Author", misc="")},
             )
 
     def test_full_content(self):
@@ -94,7 +101,7 @@ class TestWeLearnDocument(TestCase):
             description="A short description of the test document.",
             lang="en",
             corpus="Test Corpus",
-            details={"author": "Test Author"},
+            details={"author": AuthorDetails(name="Test Author", misc="")},
         )
 
         self.assertEqual(
@@ -110,7 +117,10 @@ class TestWeLearnDocument(TestCase):
             description="A short description of the test document.",
             lang="en",
             corpus="Test Corpus",
-            details={"author": "Test Author", "doi": "10.1000/xyz123"},
+            details={
+                "author": AuthorDetails(name="Test Author", misc=""),
+                "doi": "10.1000/xyz123",
+            },
             doi="10.1000/xyz123",
         )
 
@@ -126,7 +136,7 @@ class TestWeLearnDocument(TestCase):
                 lang="en",
                 corpus="Test Corpus",
                 details={
-                    "author": "Test Author",
+                    "author": AuthorDetails(name="Test Author", misc=""),
                     "doi": "11.1590/s0100-879x2002000500007",
                 },
                 doi="11.1590/s0100-879x2002000500007",
@@ -142,7 +152,7 @@ class TestWeLearnDocument(TestCase):
                 lang="en",
                 corpus="Test Corpus",
                 details={
-                    "author": "Test Author",
+                    "author": AuthorDetails(name="Test Author", misc=""),
                     "doi": "https://doi.org/10.1000/xyz123",
                 },
                 doi="https://doi.org/10.1000/xyz123",
@@ -156,7 +166,7 @@ class TestWeLearnDocument(TestCase):
             description="<p>A short description &nbsp of the   test document.</p>",
             lang="en",
             corpus="Test Corpus",
-            details={"author": "Test Author"},
+            details={"author": AuthorDetails(name="Test Author", misc="")},
         )
 
         self.assertEqual(
@@ -202,7 +212,7 @@ class TestWeLearnDocument(TestCase):
             full_content="This is a test document, used for unit testing, please ignore. Thank you!",
             description="A short description of the test document.",
             lang="en",
-            details={"author": "Test Author"},
+            details={"author": AuthorDetails(name="Test Author", misc="")},
         )
 
         test_session.add(test_doc)
@@ -232,7 +242,7 @@ class TestWeLearnDocument(TestCase):
             description="A short description of the test document.",
             lang="en",
             corpus="Test Corpus",
-            details={"author": "Test Author"},
+            details={"author": AuthorDetails(name="Test Author", misc="")},
         )
 
         self.assertEqual(test_doc.trace, expected_trace)
@@ -275,7 +285,7 @@ class TestWeLearnDocument(TestCase):
             description="A short description of the test document.",
             lang="en",
             corpus_id=test_corpus.id,
-            details={"author": "Test Author"},
+            details={"author": AuthorDetails(name="Test Author", misc="")},
         )
         test_session.add(test_doc)
         test_session.commit()
@@ -322,7 +332,7 @@ class TestWeLearnDocument(TestCase):
             description="A short description of the test document.",
             lang="en",
             corpus_id=test_corpus.id,
-            details={"author": "Test Author"},
+            details={"author": AuthorDetails(name="Test Author", misc="")},
         )
         test_session.add(test_doc)
         test_session.commit()
@@ -372,7 +382,7 @@ class TestWeLearnDocument(TestCase):
                 description="A short description of the test document.",
                 lang="en",
                 corpus_id=test_corpus.id,
-                details={"author": "Test Author"},
+                details={"author": AuthorDetails(name="Test Author", misc="")},
             )
             test_session.add(test_doc)
             test_process_state = ProcessState(
@@ -441,7 +451,7 @@ class TestWeLearnDocument(TestCase):
                 description="A short description of the test document.",
                 lang="en",
                 corpus_id=test_corpus.id,
-                details={"author": "Test Author"},
+                details={"author": AuthorDetails(name="Test Author", misc="")},
             )
             test_session.add(test_doc)
             test_process_state = ProcessState(
