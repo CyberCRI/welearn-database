@@ -31,8 +31,8 @@ VALUES
 	('/api/v1/qna/chat/answer', 'chat'),
 	('/api/v1/qna/chat/agent', 'chat'),
 	('/api/v1/tutor/syllabus', 'syllabus'),
-	('/api/v1/user/bookmarks/:document_id', 'bookmark'),
-	('/api/v1/user/:user_id/bookmarks/:document_id', 'bookmark')
+	('/api/v1/user/bookmarks/' || ':' || 'document_id', 'bookmark'),
+	('/api/v1/user/' || ':' || 'user_id' || '/bookmarks/' || ':' || 'document_id', 'bookmark')
 	) AS t(endpoint_name, feature_name)
 ),
 session_feature_pair AS (
