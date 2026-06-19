@@ -27,7 +27,7 @@ def upgrade() -> None:
             "id", sa.Uuid(), server_default=text("gen_random_uuid()"), nullable=False
         ),
         sa.Column("source_name", sa.String(), nullable=False),
-        sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.Column("count", sa.Integer(), nullable=False),
         sa.Column(
             "created_at", postgresql.TIMESTAMP(), server_default="NOW()", nullable=False
         ),
@@ -41,7 +41,7 @@ def upgrade() -> None:
             "id", sa.Uuid(), server_default=text("gen_random_uuid()"), nullable=False
         ),
         sa.Column("source_name", sa.String(), nullable=False),
-        sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.Column("count", sa.Integer(), nullable=False),
         sa.Column(
             "created_at", postgresql.TIMESTAMP(), server_default="NOW()", nullable=False
         ),
@@ -54,7 +54,7 @@ def upgrade() -> None:
         sa.Column(
             "id", sa.Uuid(), server_default=text("gen_random_uuid()"), nullable=False
         ),
-        sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.Column("count", sa.Integer(), nullable=False),
         sa.Column(
             "created_at", postgresql.TIMESTAMP(), server_default="NOW()", nullable=False
         ),
