@@ -271,3 +271,34 @@ class FilterUsedInQuery(Base):
     filter_value: Mapped[str]
 
     chat_message: Mapped["ChatMessage"] = relationship()
+
+
+class AnalyticForm(Base):
+    __tablename__ = "analytic_form"
+    __table_args__ = {"schema": DbSchemaEnum.USER_RELATED.value}
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    form_name: Mapped[str] = mapped_column(nullable=False)
+    question: Mapped[str] = mapped_column(nullable=False)
+    answer: Mapped[str] = mapped_column(nullable=False)
+    answer_type: Mapped[str] = mapped_column(
+        ENUM(
+            *(e.value.lower() for e in FilterType),
+            name="answer_type",
+            schema=DbSchemaEnum.USER_RELATED.value,
+        ),
+    )
+    session_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey("user_related.session.id"),
+        nullable=False,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+    session = relationship("Session", foreign_keys=[session_id])
