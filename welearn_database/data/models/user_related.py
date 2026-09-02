@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKey, func, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from welearn_database.data.enumeration import DbSchemaEnum, FilterType
+from welearn_database.data.enumeration import DbSchemaEnum, FilterType, QuestionType
 from welearn_database.data.models.document_related import WeLearnDocument
 
 from . import Base
@@ -285,7 +285,7 @@ class AnalyticForm(Base):
     answer: Mapped[str] = mapped_column(nullable=False)
     answer_type: Mapped[str] = mapped_column(
         ENUM(
-            *(e.value.lower() for e in FilterType),
+            *(e.value.lower() for e in QuestionType),
             name="answer_type",
             schema=DbSchemaEnum.USER_RELATED.value,
         ),
