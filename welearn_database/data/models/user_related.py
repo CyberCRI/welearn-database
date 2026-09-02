@@ -289,10 +289,11 @@ class AnalyticForm(Base):
             name="answer_type",
             schema=DbSchemaEnum.USER_RELATED.value,
         ),
+        nullable=False,
     )
     session_id: Mapped[UUID] = mapped_column(
         types.Uuid,
-        ForeignKey("user_related.session.id"),
+        ForeignKey(f"{DbSchemaEnum.USER_RELATED.value}.session.id"),
         nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
