@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKey, func, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from welearn_database.data.enumeration import DbSchemaEnum, FilterType
+from welearn_database.data.enumeration import DbSchemaEnum, FilterType, QuestionType
 from welearn_database.data.models.document_related import WeLearnDocument
 
 from . import Base
@@ -271,3 +271,35 @@ class FilterUsedInQuery(Base):
     filter_value: Mapped[str]
 
     chat_message: Mapped["ChatMessage"] = relationship()
+
+
+class AnalyticForm(Base):
+    __tablename__ = "analytic_form"
+    __table_args__ = {"schema": DbSchemaEnum.USER_RELATED.value}
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    form_name: Mapped[str] = mapped_column(nullable=False)
+    question: Mapped[str] = mapped_column(nullable=False)
+    answer: Mapped[str] = mapped_column(nullable=False)
+    answer_type: Mapped[str] = mapped_column(
+        ENUM(
+            *(e.value.lower() for e in QuestionType),
+            name="answer_type",
+            schema=DbSchemaEnum.USER_RELATED.value,
+        ),
+        nullable=False,
+    )
+    session_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(f"{DbSchemaEnum.USER_RELATED.value}.session.id"),
+        nullable=False,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+    session = relationship("Session", foreign_keys=[session_id])

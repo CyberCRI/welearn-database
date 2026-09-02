@@ -6,9 +6,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from tests.helpers import handle_schema_with_sqlite
-from welearn_database.data.enumeration import FilterType
+from welearn_database.data.enumeration import FilterType, QuestionType
 from welearn_database.data.models import Base
 from welearn_database.data.models.user_related import (
+    AnalyticForm,
     APIKeyManagement,
     Bookmark,
     ChatMessage,
@@ -22,7 +23,6 @@ from welearn_database.data.models.user_related import Session as UserSession
 from welearn_database.data.models.user_related import (
     UserProfile,
 )
-from welearn_database.exceptions import EarlyEnumerationVerificationError
 
 
 class TestUserRelatedCRUD(TestCase):
@@ -243,3 +243,71 @@ class TestUserRelatedCRUD(TestCase):
             self.session.query(FilterUsedInQuery).filter_by(filter_value="13").first()
         )
         self.assertIsNotNone(result)
+
+    def test_create_and_read_analytic_form(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+
+        user_session = UserSession(
+            id=uuid.uuid4(),
+            inferred_user_id=inferred_user.id,
+            origin_referrer="ref",
+            end_at=datetime.now() + timedelta(hours=1),
+            host="localhost",
+        )
+        self.session.add(user_session)
+        self.session.commit()
+
+        analytic_form = AnalyticForm(
+            id=uuid.uuid4(),
+            form_name="feedback_form",
+            question="Comment evaluez-vous la pertinence ?",
+            answer="Tres pertinente",
+            answer_type=QuestionType.TEXT.value,
+            session_id=user_session.id,
+        )
+        self.session.add(analytic_form)
+        self.session.commit()
+
+        result = (
+            self.session.query(AnalyticForm)
+            .filter_by(form_name="feedback_form", session_id=user_session.id)
+            .first()
+        )
+        self.assertIsNotNone(result)
+        self.assertEqual(result.question, "Comment evaluez-vous la pertinence ?")
+        self.assertEqual(result.answer, "Tres pertinente")
+        self.assertEqual(result.answer_type, QuestionType.TEXT.value)
+        self.assertEqual(result.session_id, user_session.id)
+
+    def test_analytic_form_session_relationship(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+
+        user_session = UserSession(
+            id=uuid.uuid4(),
+            inferred_user_id=inferred_user.id,
+            origin_referrer="ref",
+            end_at=datetime.now() + timedelta(hours=1),
+            host="localhost",
+        )
+        self.session.add(user_session)
+        self.session.commit()
+
+        analytic_form = AnalyticForm(
+            id=uuid.uuid4(),
+            form_name="feedback_form",
+            question="Question test",
+            answer="Reponse test",
+            answer_type=QuestionType.PREDEFINED_TEXT.value,
+            session_id=user_session.id,
+        )
+        self.session.add(analytic_form)
+        self.session.commit()
+
+        result = self.session.query(AnalyticForm).filter_by(id=analytic_form.id).first()
+        self.assertIsNotNone(result)
+        self.assertIsNotNone(result.session)
+        self.assertEqual(result.session.id, user_session.id)

@@ -492,7 +492,7 @@ class TestWeLearnDocument(TestCase):
         test_hqdpc = HistoricalQtyDocumentPerCorpus(
             id=uuid.uuid4(),
             source_name="corpus_test",
-            quantity=100,
+            count=100,
         )
         test_session.add(test_hqdpc)
         test_session.commit()
@@ -513,7 +513,7 @@ class TestWeLearnDocument(TestCase):
         test_hqdpc = HistoricalQtyDocumentInQdrantPerCorpus(
             id=uuid.uuid4(),
             source_name="corpus_test",
-            quantity=100,
+            count=100,
         )
         test_session.add(test_hqdpc)
         test_session.commit()
@@ -535,7 +535,7 @@ class TestWeLearnDocument(TestCase):
 
         test_hqdpc = HistoricalQtyDocumentInQdrant(
             id=uuid.uuid4(),
-            quantity=100,
+            count=100,
         )
         test_session.add(test_hqdpc)
         test_session.commit()

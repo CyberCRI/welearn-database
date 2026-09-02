@@ -43,3 +43,9 @@ class ExternalIdType(StrEnum):
 class FilterType(StrEnum):
     SDG = auto()
     SOURCE = auto()
+
+
+class QuestionType(StrEnum):
+    TEXT = auto()
+    CHECKBOX = auto()
+    PREDEFINED_TEXT = auto()
