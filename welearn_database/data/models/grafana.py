@@ -151,3 +151,16 @@ class UsedFeaturePerSession(Base):
     cnt: Mapped[int] = mapped_column()
     is_feature_used: Mapped[bool] = mapped_column()
     session_created_at: Mapped[datetime] = mapped_column()
+
+
+class ChatGeneralAnalytic(Base):
+    __tablename__ = "chat_general_analytic"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    message_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    textual_content: Mapped[str]
+    conversation_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    conversation_started_at: Mapped[datetime]
+    role: Mapped[str]
+    number_of_sources: Mapped[int | None]
