@@ -38,30 +38,45 @@ class TestDatabaseCRUD(TestCase):
             is_fix=True,
             is_active=True,
             category_id=category.id,
+            main_url="https://example.org",
         )
         self.session.add(corpus)
         self.session.commit()
         result = self.session.query(Corpus).filter_by(source_name="Corpus Test").first()
         self.assertIsNotNone(result)
+        self.assertEqual(result.main_url, "https://example.org")
 
-    def test_updates_corpus_binary_treshold(self):
+    def test_creates_and_reads_parent_corpus(self):
         category = Category(id=uuid.uuid4(), title="Category Test")
         self.session.add(category)
         self.session.commit()
+        corpus_parent_id = uuid.uuid4()
         corpus = Corpus(
-            id=uuid.uuid4(),
+            id=corpus_parent_id,
             source_name="Corpus Test",
             is_fix=True,
             is_active=True,
             category_id=category.id,
+            main_url="https://example.org",
+        )
+        corpus2 = Corpus(
+            id=uuid.uuid4(),
+            parent_corpus_id=corpus_parent_id,
+            source_name="Sub Corpus Test",
+            is_fix=True,
+            is_active=True,
+            category_id=category.id,
+            main_url="https://example.org/sub",
         )
         self.session.add(corpus)
+        self.session.add(corpus2)
         self.session.commit()
-        self.session.commit()
-        updated_corpus = (
-            self.session.query(Corpus).filter_by(source_name="Corpus Test").first()
+        result = (
+            self.session.query(Corpus).filter_by(source_name="Sub Corpus Test").first()
         )
-        self.assertIsNotNone(updated_corpus)
+        self.assertIsNotNone(result)
+        self.assertEqual(result.main_url, "https://example.org/sub")
+        self.assertEqual(result.parent_corpus_id, corpus_parent_id)
 
     def test_deletes_corpus(self):
         category = Category(id=uuid.uuid4(), title="Category Test")
