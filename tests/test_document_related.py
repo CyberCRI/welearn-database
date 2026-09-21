@@ -196,7 +196,6 @@ class TestWeLearnDocument(TestCase):
             source_name="Test Corpus",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.5,
             category_id=category_id,
         )
         test_session.add(test_corpus)
@@ -271,7 +270,6 @@ class TestWeLearnDocument(TestCase):
             source_name="Test Corpus",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.5,
             category_id=test_category.id,
         )
         test_session.add(test_corpus)
@@ -318,7 +316,6 @@ class TestWeLearnDocument(TestCase):
             source_name="Test Corpus",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.5,
             category_id=test_category.id,
         )
         test_session.add(test_corpus)
@@ -367,7 +364,6 @@ class TestWeLearnDocument(TestCase):
             source_name="Test Corpus",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.5,
             category_id=test_category.id,
         )
         test_session.add(test_corpus)
@@ -435,7 +431,6 @@ class TestWeLearnDocument(TestCase):
             source_name="Test Corpus",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.5,
             category_id=test_category.id,
         )
         test_session.add(test_corpus)

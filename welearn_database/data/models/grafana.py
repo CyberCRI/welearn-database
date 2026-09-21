@@ -16,10 +16,13 @@ class Corpus(Base):
     __table_args__ = {"schema": schema_name}
     __read_only__ = True
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
-    source_name: Mapped[str] = mapped_column()
-    is_fix: Mapped[bool | None] = mapped_column(nullable=True)
-    binary_treshold: Mapped[float | None] = mapped_column(nullable=True)
+    id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    parent_corpus_id: Mapped[UUID | None] = mapped_column(UUID(as_uuid=True))
+    source_name: Mapped[str]
+    main_url: Mapped[str | None] = mapped_column(nullable=True)
+    is_fix: Mapped[bool]
+    is_active: Mapped[bool]
+    category_id: Mapped[UUID | None] = mapped_column(UUID(as_uuid=True))
 
 
 class DocumentLatestState(Base):

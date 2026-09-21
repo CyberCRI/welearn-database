@@ -87,7 +87,6 @@ class TestDatabaseCRUD(TestCase):
             source_name="Corpus Test",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.5,
             category_id=category.id,
         )
         self.session.add(corpus)
