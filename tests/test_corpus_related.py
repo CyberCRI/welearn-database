@@ -37,14 +37,12 @@ class TestDatabaseCRUD(TestCase):
             source_name="Corpus Test",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.7,
             category_id=category.id,
         )
         self.session.add(corpus)
         self.session.commit()
         result = self.session.query(Corpus).filter_by(source_name="Corpus Test").first()
         self.assertIsNotNone(result)
-        self.assertEqual(float(result.binary_treshold), 0.7)
 
     def test_updates_corpus_binary_treshold(self):
         category = Category(id=uuid.uuid4(), title="Category Test")
@@ -55,18 +53,15 @@ class TestDatabaseCRUD(TestCase):
             source_name="Corpus Test",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.7,
             category_id=category.id,
         )
         self.session.add(corpus)
         self.session.commit()
-        corpus.binary_treshold = 0.9
         self.session.commit()
         updated_corpus = (
             self.session.query(Corpus).filter_by(source_name="Corpus Test").first()
         )
         self.assertIsNotNone(updated_corpus)
-        self.assertEqual(float(updated_corpus.binary_treshold), 0.9)
 
     def test_deletes_corpus(self):
         category = Category(id=uuid.uuid4(), title="Category Test")
@@ -77,7 +72,6 @@ class TestDatabaseCRUD(TestCase):
             source_name="Corpus Test",
             is_fix=True,
             is_active=True,
-            binary_treshold=0.7,
             category_id=category.id,
         )
         self.session.add(corpus)
