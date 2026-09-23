@@ -572,10 +572,10 @@ class TrackDocumentLatestState(Base):
 
     id: Mapped[UUID] = mapped_column(
         primary_key=True,
-        type=types.Uuid,
+        type_=types.Uuid,
     )
     document_id: Mapped[UUID] = mapped_column(
-        type=types.Uuid,
+        type_=types.Uuid,
     )
     lang: Mapped[str]
     title: Mapped[str]
