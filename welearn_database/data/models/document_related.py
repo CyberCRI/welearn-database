@@ -563,3 +563,21 @@ class QtyDocumentPerCorpus(Base):
 
     source_name: Mapped[str] = mapped_column(primary_key=True)
     count: Mapped[int]
+
+
+class TrackDocumentLatestState(Base):
+    __tablename__ = "track_document_latest_state"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        type_=types.Uuid,
+    )
+    document_id: Mapped[UUID] = mapped_column(
+        type_=types.Uuid,
+    )
+    lang: Mapped[str]
+    title: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column()
+    operation_order: Mapped[int]
