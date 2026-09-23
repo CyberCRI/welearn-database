@@ -215,6 +215,7 @@ class InferredUser(Base):
     id: Mapped[UUID] = mapped_column(
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
     )
+    keycloak_id: Mapped[UUID] = mapped_column(types.Uuid, nullable=True)
     origin_referrer: Mapped[str | None]
     university_title: Mapped[str | None]
     role: Mapped[str | None]
