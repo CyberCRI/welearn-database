@@ -12,6 +12,7 @@ class Step(Enum):
     DOCUMENT_IS_INVALID = "document_is_invalid"
     KEPT_FOR_TRACE = "kept_for_trace"
     DOCUMENT_IS_IRRETRIEVABLE = "document_is_irretrievable"
+    DOCUMENT_CLEANED = "document_cleaned"
 
 
 class Counter(Enum):
