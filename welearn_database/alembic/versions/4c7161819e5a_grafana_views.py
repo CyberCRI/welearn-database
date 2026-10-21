@@ -11,7 +11,7 @@ from typing import Sequence, Union
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "4c7161819e5a"
+revision: str = "1_5_5"
 down_revision: Union[str, None] = "5d82613c9aca"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -20,18 +20,15 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade():
     op.execute("CREATE SCHEMA IF NOT EXISTS grafana;")
 
-    op.execute(
-        """
+    op.execute("""
     CREATE OR REPLACE VIEW grafana.corpus
     AS SELECT corpus.id,
     corpus.source_name,
     corpus.is_fix,
     corpus.binary_treshold
    FROM corpus_related.corpus;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.document_state_summary
 AS SELECT corpus.source_name,
     count(DISTINCT
@@ -84,10 +81,8 @@ AS SELECT corpus.source_name,
      LEFT JOIN document_related.welearn_document ON corpus.id = welearn_document.corpus_id
      LEFT JOIN document_related.process_state ON welearn_document.id = process_state.document_id
   GROUP BY corpus.source_name;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.endpoint_request
 AS SELECT endpoint_request.id,
     endpoint_request.session_id,
@@ -96,18 +91,14 @@ AS SELECT endpoint_request.id,
     endpoint_request.message,
     endpoint_request.created_at
    FROM user_related.endpoint_request;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.inferred_user
 AS SELECT inferred_user.id,
     inferred_user.created_at
    FROM user_related.inferred_user;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.process_state
 AS SELECT process_state.id,
     process_state.document_id,
@@ -115,10 +106,8 @@ AS SELECT process_state.id,
     process_state.created_at,
     process_state.operation_order
    FROM document_related.process_state;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.qty_endpoints_per_user
 AS SELECT iu.*::user_related.inferred_user AS iu,
     count(1) AS count
@@ -126,10 +115,8 @@ AS SELECT iu.*::user_related.inferred_user AS iu,
      JOIN user_related.session s ON s.id = er.session_id
      JOIN user_related.inferred_user iu ON iu.id = s.inferred_user_id
   GROUP BY iu.id;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.qty_session_endpoint_per_user
 AS SELECT s.inferred_user_id,
     s.host,
@@ -138,20 +125,16 @@ AS SELECT s.inferred_user_id,
    FROM user_related.session s
      LEFT JOIN user_related.endpoint_request er ON s.id = er.session_id
   GROUP BY s.inferred_user_id, s.host;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.qty_session_user_per_host
 AS SELECT s.host,
     count(1) AS count_sessions,
     count(DISTINCT s.inferred_user_id) AS count_users
    FROM user_related.session s
   GROUP BY s.host;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana."session"
 AS SELECT session.id,
     session.inferred_user_id,
@@ -159,10 +142,8 @@ AS SELECT session.id,
     session.end_at,
     session.host
    FROM user_related.session;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.document_latest_state
 AS SELECT DISTINCT ON (ps.document_id) ps.id,
     ps.document_id,
@@ -174,10 +155,8 @@ AS SELECT DISTINCT ON (ps.document_id) ps.id,
    FROM document_related.process_state ps
      JOIN document_related.welearn_document wd ON ps.document_id = wd.id
   ORDER BY ps.document_id, ps.operation_order DESC;
-    """
-    )
-    op.execute(
-        """
+    """)
+    op.execute("""
 CREATE OR REPLACE VIEW grafana.test_document_latest_state
 AS SELECT DISTINCT ON (ps.document_id) ps.id,
     ps.document_id,
@@ -189,8 +168,7 @@ AS SELECT DISTINCT ON (ps.document_id) ps.id,
    FROM document_related.process_state ps
      JOIN document_related.welearn_document wd ON ps.document_id = wd.id
   ORDER BY ps.document_id, ps.operation_order DESC;
-    """
-    )
+    """)
 
 
 def downgrade():
