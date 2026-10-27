@@ -1,6 +1,6 @@
 """analytical_view_for_research
 
-Revision ID: 951e0ad95367
+Revision ID: 1_5_5
 Revises: d990f127902f
 Create Date: 2026-10-19 15:04:47.681660
 
@@ -11,7 +11,7 @@ from typing import Sequence, Union
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "951e0ad95367"
+revision: str = "1_5_5"
 down_revision: Union[str, None] = "d990f127902f"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
