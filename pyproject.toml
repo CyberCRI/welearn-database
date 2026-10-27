@@ -1,6 +1,6 @@
 [project]
 name = "welearn-database"
-version = "1.5.4.dev1"
+version = "1.5.5"
 
 description = "All stuff related to relationnal database from the WeLearn project"
 authors = [
@@ -11,7 +11,7 @@ readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.10"
 dependencies = [
     "sqlalchemy (>=2.0.43,<3.0.0)",
-    "alembic (>=1.16.5,<2.0.0)",
+    "alembic (>=1.4.3,<2.0.0)",
     "python-dotenv (>=1.2.2,<2.0.0)",
     "psycopg2-binary (>=2.9.11,<3.0.0)",
 ]
