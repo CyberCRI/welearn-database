@@ -27,6 +27,7 @@ class Corpus(Base):
     main_url: Mapped[str | None] = mapped_column(nullable=True)
     is_fix: Mapped[bool]
     is_active: Mapped[bool]
+    is_hidden: Mapped[bool] = mapped_column(default=False)
     category_id: Mapped[UUID] = mapped_column(
         types.Uuid,
         ForeignKey(f"{schema_name}.category.id"),
