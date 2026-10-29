@@ -19,8 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    pass
-
+    op.add_column("category", sa.Column("is_hidden", sa.Boolean(), nullable=False, server_default=sa.false()), schema="corpus_related")
 
 def downgrade() -> None:
-    pass
+    op.drop_column("category", "is_hidden", schema="corpus_related")
