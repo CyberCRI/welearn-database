@@ -1,8 +1,8 @@
-"""add_is hidden_column_to_corpus
+"""add_is hidden_column_to_category
 
 Revision ID: 1_5_6
-Revises: 1_5_5
-Create Date: 2026-10-28 17:17:28.966030
+Revises: 1_5_6
+Create Date: 2026-10-29 16:05:28.280023
 
 """
 from typing import Sequence, Union
@@ -19,8 +19,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("corpus", sa.Column("is_hidden", sa.Boolean(), nullable=False, server_default=sa.false()), schema="corpus_related")
+    pass
 
 
 def downgrade() -> None:
-    op.drop_column("corpus", "is_hidden", schema="corpus_related")
+    pass
