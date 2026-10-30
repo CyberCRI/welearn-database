@@ -41,6 +41,8 @@ class Category(Base):
         types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
     )
     title: Mapped[str]
+    is_hidden: Mapped[bool] = mapped_column(default=False)
+
 
 
 class EmbeddingModel(Base):
