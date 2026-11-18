@@ -2,7 +2,8 @@ import uuid
 from datetime import datetime, timedelta
 from unittest import TestCase
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
 from tests.helpers import handle_schema_with_sqlite
@@ -15,14 +16,13 @@ from welearn_database.data.models.user_related import (
     ChatMessage,
     DataCollectionCampaignManagement,
     EndpointRequest,
+    Feature,
     FilterUsedInQuery,
     InferredUser,
     ReturnedDocument,
 )
 from welearn_database.data.models.user_related import Session as UserSession
-from welearn_database.data.models.user_related import (
-    UserProfile,
-)
+from welearn_database.data.models.user_related import Thread, UserProfile
 
 
 class TestUserRelatedCRUD(TestCase):
@@ -311,3 +311,78 @@ class TestUserRelatedCRUD(TestCase):
         self.assertIsNotNone(result)
         self.assertIsNotNone(result.session)
         self.assertEqual(result.session.id, user_session.id)
+
+    def _add_user_and_feature(self, title="chat"):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        feature = Feature(id=uuid.uuid4(), title=title)
+        self.session.add_all([inferred_user, feature])
+        self.session.commit()
+        return inferred_user, feature
+
+    def test_create_and_read_thread(self):
+        inferred_user, feature = self._add_user_and_feature()
+        thread = Thread(
+            id=uuid.uuid4(),
+            inferred_user_id=inferred_user.id,
+            feature_id=feature.id,
+            title="What is a carbon budget?",
+        )
+        self.session.add(thread)
+        self.session.commit()
+
+        result = self.session.query(Thread).filter_by(id=thread.id).first()
+        self.assertEqual(result.title, "What is a carbon budget?")
+        self.assertEqual(result.feature.title, "chat")
+        self.assertEqual(result.inferred_user.id, inferred_user.id)
+        self.assertFalse(result.is_finished)
+        self.assertIsNone(result.current_step)
+        self.assertIsNotNone(result.created_at)
+        self.assertIsNotNone(result.updated_at)
+
+    def test_thread_with_steps(self):
+        inferred_user, feature = self._add_user_and_feature("microlearning")
+        thread = Thread(
+            id=uuid.uuid4(),
+            inferred_user_id=inferred_user.id,
+            feature_id=feature.id,
+            current_step=2,
+            max_step=5,
+        )
+        self.session.add(thread)
+        self.session.commit()
+
+        thread.current_step = 5
+        thread.is_finished = True
+        self.session.commit()
+
+        result = self.session.query(Thread).filter_by(id=thread.id).first()
+        self.assertEqual((result.current_step, result.max_step), (5, 5))
+        self.assertTrue(result.is_finished)
+
+    def test_thread_title_is_optional(self):
+        inferred_user, feature = self._add_user_and_feature()
+        thread = Thread(
+            id=uuid.uuid4(), inferred_user_id=inferred_user.id, feature_id=feature.id
+        )
+        self.session.add(thread)
+        self.session.commit()
+        self.assertIsNone(self.session.get(Thread, thread.id).title)
+
+    def test_thread_requires_a_feature(self):
+        inferred_user, _ = self._add_user_and_feature()
+        self.session.add(Thread(id=uuid.uuid4(), inferred_user_id=inferred_user.id))
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
+    def test_feature_title_is_unique(self):
+        self._add_user_and_feature("chat")
+        self.session.add(Feature(id=uuid.uuid4(), title="chat"))
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
+    def test_thread_list_index(self):
+        indexes = inspect(self.engine).get_indexes("thread", schema="user_related")
+        index = next(
+            i for i in indexes if i["name"] == "thread_user_feature_updated_idx"
+        )
+        self.assertEqual(index["column_names"][:2], ["inferred_user_id", "feature_id"])

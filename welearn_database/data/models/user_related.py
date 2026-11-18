@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, func, types
+from sqlalchemy import ForeignKey, Index, func, text, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -304,3 +304,84 @@ class AnalyticForm(Base):
         server_default="NOW()",
     )
     session = relationship("Session", foreign_keys=[session_id])
+
+
+class Feature(Base):
+    """
+    A WeLearn feature a user can start runs of (chat, microlearning...). Rows are
+    created by the migrations, and code finds a feature by its unique title.
+    """
+
+    __tablename__ = "feature"
+    __table_args__ = {"schema": DbSchemaEnum.USER_RELATED.value}
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    title: Mapped[str] = mapped_column(nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+
+
+class Thread(Base):
+    """
+    One run of a feature by a user: a chat conversation, a microlearning... For a
+    chat, the id is the agent's thread id.
+    """
+
+    __tablename__ = "thread"
+    __table_args__ = (
+        Index(
+            "thread_user_feature_updated_idx",
+            "inferred_user_id",
+            "feature_id",
+            text("updated_at DESC"),
+        ),
+        {"schema": DbSchemaEnum.USER_RELATED.value},
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    inferred_user_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id",
+            name="thread_inferred_user_id_fkey",
+        ),
+        nullable=False,
+    )
+    feature_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.USER_RELATED.value}.feature.id",
+            name="thread_feature_id_fkey",
+        ),
+        nullable=False,
+    )
+    title: Mapped[str | None]
+    current_step: Mapped[int | None]
+    max_step: Mapped[int | None]
+    is_finished: Mapped[bool | None] = mapped_column(
+        default=False, server_default="False"
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+        onupdate=func.localtimestamp(),
+    )
+    inferred_user: Mapped["InferredUser"] = relationship()
+    feature: Mapped["Feature"] = relationship()
