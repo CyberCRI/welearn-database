@@ -3,6 +3,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from dotenv import load_dotenv
+from sqlalchemy import URL
 
 from welearn_database.database_utils import create_sqlalchemy_engine
 
@@ -45,9 +46,18 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    load_dotenv()
+
+    db_url = URL.create(
+        drivername=os.getenv("PG_DRIVER", "postgresql+psycopg"),
+        username=os.environ["PG_USER"],
+        password=os.environ["PG_PASSWORD"],
+        host=os.getenv("PG_HOST", "localhost"),
+        port=int(os.getenv("PG_PORT", "5432")),
+        database=os.environ["PG_DB"],
+    )
     context.configure(
-        url=url,
+        url=db_url.render_as_string(hide_password=False),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
