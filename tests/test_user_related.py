@@ -351,14 +351,50 @@ class TestUserRelatedCRUD(TestCase):
         )
         self.session.add(thread)
         self.session.commit()
+        self.session.refresh(thread)
+        self.assertFalse(thread.is_finished)
 
         thread.current_step = 5
-        thread.is_finished = True
         self.session.commit()
+        self.session.refresh(thread)
 
         result = self.session.query(Thread).filter_by(id=thread.id).first()
         self.assertEqual((result.current_step, result.max_step), (5, 5))
         self.assertTrue(result.is_finished)
+
+    def test_thread_and_guest_usage_deleted_with_user(self):
+        with self.engine.connect() as conn:
+            conn.exec_driver_sql("PRAGMA foreign_keys=ON")
+            session = sessionmaker(bind=conn)()
+            inferred_user = InferredUser(id=uuid.uuid4())
+            feature = Feature(id=uuid.uuid4(), title="chat")
+            session.add_all([inferred_user, feature])
+            session.flush()
+            session.add_all(
+                [
+                    Thread(
+                        id=uuid.uuid4(),
+                        inferred_user_id=inferred_user.id,
+                        feature_id=feature.id,
+                    ),
+                    GuestFeatureUsage(
+                        id=uuid.uuid4(),
+                        inferred_user_id=inferred_user.id,
+                        feature_id=feature.id,
+                        action="question",
+                    ),
+                ]
+            )
+            session.flush()
+
+            session.delete(inferred_user)
+            session.flush()
+            session.expunge_all()
+
+            self.assertEqual(session.query(Thread).count(), 0)
+            self.assertEqual(session.query(GuestFeatureUsage).count(), 0)
+            self.assertEqual(session.query(Feature).count(), 1)
+            session.close()
 
     def test_thread_title_is_optional(self):
         inferred_user, feature = self._add_user_and_feature()

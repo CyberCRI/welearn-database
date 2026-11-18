@@ -43,7 +43,12 @@ def upgrade() -> None:
         sa.Column("title", sa.String(), nullable=True),
         sa.Column("current_step", sa.Integer(), nullable=True),
         sa.Column("max_step", sa.Integer(), nullable=True),
-        sa.Column("is_finished", sa.Boolean(), server_default=sa.false(), nullable=True),
+        sa.Column(
+            "is_finished",
+            sa.Boolean(),
+            sa.Computed("COALESCE(current_step >= max_step, false)", persisted=True),
+            nullable=False,
+        ),
         sa.Column("created_at", sa.TIMESTAMP(), server_default=sa.text("NOW()"), nullable=False),
         sa.Column("updated_at", sa.TIMESTAMP(), server_default=sa.text("NOW()"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -51,6 +56,7 @@ def upgrade() -> None:
             ["inferred_user_id"],
             [f"{SCHEMA}.inferred_user.id"],
             name="thread_inferred_user_id_fkey",
+            ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["feature_id"],
@@ -78,6 +84,7 @@ def upgrade() -> None:
             ["inferred_user_id"],
             [f"{SCHEMA}.inferred_user.id"],
             name="guest_feature_usage_inferred_user_id_fkey",
+            ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["feature_id"],

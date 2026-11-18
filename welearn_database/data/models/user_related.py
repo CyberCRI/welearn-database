@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, Index, func, text, types
+from sqlalchemy import Computed, ForeignKey, Index, func, text, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -330,7 +330,9 @@ class Feature(Base):
 class Thread(Base):
     """
     One run of a feature by a user: a chat conversation, a microlearning... For a
-    chat, the id is the agent's thread id.
+    chat, the id is the agent's thread id. is_finished is computed by Postgres
+    from current_step and max_step, so it can't be written; a thread without
+    steps is never finished.
     """
 
     __tablename__ = "thread"
@@ -352,6 +354,7 @@ class Thread(Base):
         ForeignKey(
             f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id",
             name="thread_inferred_user_id_fkey",
+            ondelete="CASCADE",
         ),
         nullable=False,
     )
@@ -366,8 +369,8 @@ class Thread(Base):
     title: Mapped[str | None]
     current_step: Mapped[int | None]
     max_step: Mapped[int | None]
-    is_finished: Mapped[bool | None] = mapped_column(
-        default=False, server_default="False"
+    is_finished: Mapped[bool] = mapped_column(
+        Computed("COALESCE(current_step >= max_step, false)", persisted=True)
     )
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),
@@ -416,6 +419,7 @@ class GuestFeatureUsage(Base):
         ForeignKey(
             f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id",
             name="guest_feature_usage_inferred_user_id_fkey",
+            ondelete="CASCADE",
         ),
         nullable=False,
     )
