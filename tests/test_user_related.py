@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timedelta
 from unittest import TestCase
 
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, func, inspect
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 
@@ -18,6 +18,7 @@ from welearn_database.data.models.user_related import (
     EndpointRequest,
     Feature,
     FilterUsedInQuery,
+    GuestFeatureUsage,
     InferredUser,
     ReturnedDocument,
 )
@@ -386,3 +387,127 @@ class TestUserRelatedCRUD(TestCase):
             i for i in indexes if i["name"] == "thread_user_feature_updated_idx"
         )
         self.assertEqual(index["column_names"][:2], ["inferred_user_id", "feature_id"])
+
+    def _add_guest_features(self):
+        features = {
+            title: Feature(id=uuid.uuid4(), title=title)
+            for title in ("chat", "syllabus")
+        }
+        self.session.add_all(features.values())
+        self.session.commit()
+        return features
+
+    def _add_usage(self, user_id, feature, action, created_at):
+        usage = GuestFeatureUsage(
+            id=uuid.uuid4(),
+            inferred_user_id=user_id,
+            feature_id=feature.id,
+            action=action,
+            created_at=created_at,
+        )
+        self.session.add(usage)
+        return usage
+
+    def test_create_and_read_guest_feature_usage(self):
+        features = self._add_guest_features()
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        usage = GuestFeatureUsage(
+            id=uuid.uuid4(),
+            inferred_user_id=inferred_user.id,
+            feature_id=features["chat"].id,
+            action="question",
+        )
+        self.session.add(usage)
+        self.session.commit()
+
+        result = self.session.get(GuestFeatureUsage, usage.id)
+        self.assertEqual(result.feature.title, "chat")
+        self.assertEqual(result.action, "question")
+        self.assertEqual(result.inferred_user.id, inferred_user.id)
+        self.assertIsNotNone(result.created_at)
+
+    def test_guest_feature_usage_counts_one_action_in_window(self):
+        syllabus = self._add_guest_features()["syllabus"]
+        guest = InferredUser(id=uuid.uuid4())
+        other_guest = InferredUser(id=uuid.uuid4())
+        self.session.add_all([guest, other_guest])
+        self.session.commit()
+        now = datetime.now()
+        self._add_usage(guest.id, syllabus, "feedback", now - timedelta(hours=25))
+        oldest_in_window = now - timedelta(hours=20)
+        self._add_usage(guest.id, syllabus, "feedback", oldest_in_window)
+        self._add_usage(guest.id, syllabus, "feedback", now - timedelta(minutes=5))
+        # same feature, other quotas
+        self._add_usage(guest.id, syllabus, "generate", now)
+        self._add_usage(guest.id, syllabus, "files", now)
+        self._add_usage(other_guest.id, syllabus, "feedback", now)
+        self.session.commit()
+
+        count, oldest = (
+            self.session.query(
+                func.count(GuestFeatureUsage.id), func.min(GuestFeatureUsage.created_at)
+            )
+            .join(Feature)
+            .filter(
+                GuestFeatureUsage.inferred_user_id == guest.id,
+                Feature.title == "syllabus",
+                GuestFeatureUsage.action == "feedback",
+                GuestFeatureUsage.created_at > now - timedelta(hours=24),
+            )
+            .one()
+        )
+        self.assertEqual(count, 2)
+        self.assertEqual(oldest, oldest_in_window)
+
+    def test_guest_feature_usage_requires_a_user(self):
+        features = self._add_guest_features()
+        self.session.add(
+            GuestFeatureUsage(
+                id=uuid.uuid4(), feature_id=features["chat"].id, action="question"
+            )
+        )
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
+    def test_guest_feature_usage_requires_a_feature(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        self.session.add(
+            GuestFeatureUsage(
+                id=uuid.uuid4(), inferred_user_id=inferred_user.id, action="question"
+            )
+        )
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
+    def test_guest_feature_usage_requires_an_action(self):
+        features = self._add_guest_features()
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        self.session.add(
+            GuestFeatureUsage(
+                id=uuid.uuid4(),
+                inferred_user_id=inferred_user.id,
+                feature_id=features["chat"].id,
+            )
+        )
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
+    def test_guest_feature_usage_index(self):
+        indexes = inspect(self.engine).get_indexes(
+            "guest_feature_usage", schema="user_related"
+        )
+        index = next(
+            i
+            for i in indexes
+            if i["name"] == "guest_feature_usage_user_feature_action_created_idx"
+        )
+        self.assertEqual(
+            index["column_names"],
+            ["inferred_user_id", "feature_id", "action", "created_at"],
+        )

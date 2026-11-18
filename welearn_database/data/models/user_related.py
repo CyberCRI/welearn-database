@@ -385,3 +385,54 @@ class Thread(Base):
     )
     inferred_user: Mapped["InferredUser"] = relationship()
     feature: Mapped["Feature"] = relationship()
+
+
+class GuestFeatureUsage(Base):
+    """
+    One limited action of a guest within a feature: a chat question, a syllabus
+    generated, feedback sent on it, course files read... The API counts a
+    guest's rows of the last 24h for one (feature, action) against its daily
+    quota, deletes the latest one to refund a failed use, and can purge older
+    rows.
+    """
+
+    __tablename__ = "guest_feature_usage"
+    __table_args__ = (
+        Index(
+            "guest_feature_usage_user_feature_action_created_idx",
+            "inferred_user_id",
+            "feature_id",
+            "action",
+            "created_at",
+        ),
+        {"schema": DbSchemaEnum.USER_RELATED.value},
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    inferred_user_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id",
+            name="guest_feature_usage_inferred_user_id_fkey",
+        ),
+        nullable=False,
+    )
+    feature_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.USER_RELATED.value}.feature.id",
+            name="guest_feature_usage_feature_id_fkey",
+        ),
+        nullable=False,
+    )
+    action: Mapped[str] = mapped_column(nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+    inferred_user: Mapped["InferredUser"] = relationship()
+    feature: Mapped["Feature"] = relationship()
