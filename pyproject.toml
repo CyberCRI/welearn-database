@@ -1,6 +1,6 @@
 [project]
 name = "welearn-database"
-version = "1.5.7"
+version = "1.5.7.dev"
 
 description = "All stuff related to relationnal database from the WeLearn project"
 authors = [
