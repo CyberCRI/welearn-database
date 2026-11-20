@@ -19,13 +19,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute(
-        """
-        DROP MATERIALIZED VIEW corpus_related.corpus_name_embedding_model_lang;
-        """
-    )
-    op.execute(
-        """
+    op.execute("""
+        DROP MATERIALIZED VIEW IF EXISTS corpus_related.corpus_name_embedding_model_lang;
+        """)
+    op.execute("""
 
 CREATE MATERIALIZED VIEW corpus_related.corpus_name_embedding_model_lang
 TABLESPACE pg_default
@@ -67,18 +64,14 @@ WHERE
         rn = 1
         
 WITH DATA;
-    """
-    )
+    """)
 
 
 def downgrade() -> None:
-    op.execute(
-        """
+    op.execute("""
         DROP MATERIALIZED VIEW corpus_related.corpus_name_embedding_model_lang;
-        """
-    )
-    op.execute(
-        """
+        """)
+    op.execute("""
         CREATE MATERIALIZED VIEW corpus_related.corpus_name_embedding_model_lang
         TABLESPACE pg_default
         AS SELECT corpus.source_name,
@@ -89,5 +82,4 @@ def downgrade() -> None:
              JOIN corpus_related.embedding_model ON embedding_model.id = corpus_embedding_model.embedding_model_id
           WHERE corpus.is_active
         WITH DATA;
-        """
-    )
+        """)
