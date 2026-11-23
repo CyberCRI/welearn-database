@@ -36,7 +36,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 # Targets that ask the user to type their name before an online run.
-PROTECTED_TARGETS = {"prod", "scaleway"}
+PROTECTED_TARGETS = {"prod"}
 
 
 def load_target_env() -> str | None:
@@ -112,6 +112,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        version_table_schema="public",
     )
 
     with context.begin_transaction():
