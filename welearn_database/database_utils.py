@@ -13,7 +13,12 @@ def create_db_session():
     return session_made()
 
 
-def create_sqlalchemy_engine():
+def create_sqlalchemy_engine(connect_timeout: int | None = None):
+    """Engine for the database in the PG_* variables.
+
+    `connect_timeout` (seconds) makes a connection to an unreachable host fail
+    instead of waiting for the TCP timeout of the system.
+    """
     pg_driver = os.getenv("PG_DRIVER", "postgresql+psycopg2")
     pg_user = os.getenv("PG_USER")
     pg_password = os.getenv("PG_PASSWORD")
@@ -28,5 +33,8 @@ def create_sqlalchemy_engine():
         port=pg_port,
         database=pg_db,
     )
-    engine = create_engine(url_object)
+    connect_args = (
+        {} if connect_timeout is None else {"connect_timeout": connect_timeout}
+    )
+    engine = create_engine(url_object, connect_args=connect_args)
     return engine
