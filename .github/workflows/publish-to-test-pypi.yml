@@ -67,6 +67,15 @@ jobs:
         poetry config virtualenvs.in-project false
         poetry config installer.max-workers 4
 
+    - name: Check tag matches pyproject version
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        v="$(poetry version -s)"
+        if [ "$v" != "${GITHUB_REF_NAME}" ]; then
+          echo "::error::Tag ${GITHUB_REF_NAME} does not match pyproject version $v"
+          exit 1
+        fi
+
     - name: Build a binary wheel and a source tarball
       run: poetry build
     - name: Store the distribution packages
