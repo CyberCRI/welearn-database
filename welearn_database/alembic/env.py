@@ -128,6 +128,12 @@ def include_name(name, type_, parent_names):
     return True
 
 
+# a host that is not reachable (VPN off) fails after this many seconds instead of
+# hanging: the private Azure names only resolve through the VPN, and a search
+# domain may send them to a host that never answers
+CONNECT_TIMEOUT_SECONDS = 10
+
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
@@ -135,7 +141,7 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    connectable = create_sqlalchemy_engine()
+    connectable = create_sqlalchemy_engine(connect_timeout=CONNECT_TIMEOUT_SECONDS)
 
     with connectable.connect() as connection:
         context.configure(
