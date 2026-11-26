@@ -11,6 +11,40 @@ from welearn_database.data.models import Base
 schema_name = DbSchemaEnum.GRAFANA.value
 
 
+class AuthEvent(Base):
+    __tablename__ = "auth_event"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    inferred_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    session_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
+    event_type: Mapped[str] = mapped_column()
+    identity_provider: Mapped[str | None] = mapped_column(nullable=True)
+    is_limited_access: Mapped[bool | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column()
+    host: Mapped[str | None] = mapped_column(nullable=True)
+
+
+class AuthEventDaily(Base):
+    __tablename__ = "auth_event_daily"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    # the view has no id: its grouping columns identify a row
+    day: Mapped[datetime] = mapped_column(primary_key=True)
+    event_type: Mapped[str] = mapped_column(primary_key=True)
+    provider: Mapped[str] = mapped_column(primary_key=True)
+    is_limited_access: Mapped[bool | None] = mapped_column(
+        primary_key=True, nullable=True
+    )
+    identity_provider: Mapped[str | None] = mapped_column(nullable=True)
+    events: Mapped[int] = mapped_column()
+    users: Mapped[int] = mapped_column()
+
+
 class Corpus(Base):
     __tablename__ = "corpus"
     __table_args__ = {"schema": schema_name}
