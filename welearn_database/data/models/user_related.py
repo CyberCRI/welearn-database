@@ -510,7 +510,7 @@ class AuthEvent(Base):
         nullable=False,
     )
     identity_provider: Mapped[str | None]
-    is_limited_access: Mapped[bool | None]
+    is_limited_access: Mapped[bool]
     keycloak_session_id: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=False),

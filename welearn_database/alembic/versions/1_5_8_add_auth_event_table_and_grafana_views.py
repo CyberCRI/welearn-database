@@ -151,7 +151,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("identity_provider", sa.String(), nullable=True),
-        sa.Column("is_limited_access", sa.Boolean(), nullable=True),
+        sa.Column("is_limited_access", sa.Boolean(), nullable=False),
         sa.Column("keycloak_session_id", sa.String(), nullable=True),
         sa.Column(
             "created_at",

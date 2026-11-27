@@ -47,7 +47,7 @@ class AuthEvent(Base):
     )
     event_type: Mapped[str] = mapped_column()
     identity_provider: Mapped[str | None] = mapped_column(nullable=True)
-    is_limited_access: Mapped[bool | None] = mapped_column(nullable=True)
+    is_limited_access: Mapped[bool] = mapped_column()
     created_at: Mapped[datetime] = mapped_column()
     host: Mapped[str | None] = mapped_column(nullable=True)
 
@@ -61,9 +61,7 @@ class AuthEventDaily(Base):
     day: Mapped[datetime] = mapped_column(primary_key=True)
     event_type: Mapped[str] = mapped_column(primary_key=True)
     provider: Mapped[str] = mapped_column(primary_key=True)
-    is_limited_access: Mapped[bool | None] = mapped_column(
-        primary_key=True, nullable=True
-    )
+    is_limited_access: Mapped[bool] = mapped_column(primary_key=True)
     identity_provider: Mapped[str | None] = mapped_column(nullable=True)
     events: Mapped[int] = mapped_column()
     users: Mapped[int] = mapped_column()

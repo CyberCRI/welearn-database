@@ -554,6 +554,7 @@ class TestUserRelatedCRUD(TestCase):
             id=uuid.uuid4(),
             inferred_user_id=user_id,
             event_type=event_type,
+            is_limited_access=False,
             keycloak_session_id=keycloak_session_id,
         )
         self.session.add(event)
@@ -596,6 +597,18 @@ class TestUserRelatedCRUD(TestCase):
         with self.assertRaises(IntegrityError):
             self.session.commit()
 
+    def test_auth_event_requires_is_limited_access(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        self.session.add(
+            AuthEvent(
+                id=uuid.uuid4(), inferred_user_id=inferred_user.id, event_type="login"
+            )
+        )
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
     def test_auth_event_one_login_per_keycloak_session(self):
         inferred_user = InferredUser(id=uuid.uuid4())
         self.session.add(inferred_user)
@@ -624,6 +637,7 @@ class TestUserRelatedCRUD(TestCase):
                     id=uuid.uuid4(),
                     inferred_user_id=inferred_user.id,
                     event_type="signup",
+                    is_limited_access=False,
                 )
             )
             session.flush()
