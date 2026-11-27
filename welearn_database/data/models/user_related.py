@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, Computed, ForeignKey, Index, func, text, types
+from sqlalchemy import Computed, ForeignKey, Index, func, text, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -465,11 +465,6 @@ class AuthEvent(Base):
 
     __tablename__ = "auth_event"
     __table_args__ = (
-        # a CHECK rather than a Postgres ENUM, so adding a value is a simple migration
-        CheckConstraint(
-            "event_type IN (" + ", ".join(f"'{e.value}'" for e in AuthEventType) + ")",
-            name="auth_event_event_type_check",
-        ),
         Index("auth_event_created_at_idx", "created_at"),
         Index("auth_event_event_type_created_at_idx", "event_type", "created_at"),
         Index(
@@ -504,7 +499,16 @@ class AuthEvent(Base):
         ),
         nullable=True,
     )
-    event_type: Mapped[str] = mapped_column(nullable=False)
+    event_type: Mapped[str] = mapped_column(
+        ENUM(
+            *(e.value for e in AuthEventType),
+            name="auth_event_type",
+            schema=DbSchemaEnum.USER_RELATED.value,
+            # SQLite has no enum type: a CHECK keeps the same rule in the tests
+            create_constraint=True,
+        ),
+        nullable=False,
+    )
     identity_provider: Mapped[str | None]
     is_limited_access: Mapped[bool | None]
     keycloak_session_id: Mapped[str | None]

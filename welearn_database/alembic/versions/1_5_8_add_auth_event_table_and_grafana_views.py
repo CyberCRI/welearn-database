@@ -10,6 +10,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = "1_5_8"
@@ -20,7 +21,7 @@ depends_on: Union[str, Sequence[str], None] = None
 SCHEMA = "user_related"
 
 # written out rather than read from AuthEventType, so this revision keeps
-# creating the same constraint if the enum changes later
+# creating the same type if the enum changes later
 EVENT_TYPES = ["signup", "account_created", "login", "logout"]
 
 # the API paths (endpoint_request.endpoint_name) of each feature, as LIKE
@@ -144,7 +145,11 @@ def upgrade() -> None:
         ),
         sa.Column("inferred_user_id", sa.Uuid(), nullable=False),
         sa.Column("session_id", sa.Uuid(), nullable=True),
-        sa.Column("event_type", sa.String(), nullable=False),
+        sa.Column(
+            "event_type",
+            postgresql.ENUM(*EVENT_TYPES, name="auth_event_type", schema=SCHEMA),
+            nullable=False,
+        ),
         sa.Column("identity_provider", sa.String(), nullable=True),
         sa.Column("is_limited_access", sa.Boolean(), nullable=True),
         sa.Column("keycloak_session_id", sa.String(), nullable=True),
@@ -155,11 +160,6 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id"),
-        # a CHECK rather than a Postgres ENUM, so adding a value is a simple migration
-        sa.CheckConstraint(
-            "event_type IN (" + ", ".join(f"'{t}'" for t in EVENT_TYPES) + ")",
-            name="auth_event_event_type_check",
-        ),
         sa.ForeignKeyConstraint(
             ["inferred_user_id"],
             [f"{SCHEMA}.inferred_user.id"],
@@ -433,3 +433,4 @@ def downgrade() -> None:
     )
     op.drop_index("auth_event_created_at_idx", table_name="auth_event", schema=SCHEMA)
     op.drop_table("auth_event", schema=SCHEMA)
+    op.execute(f"DROP TYPE IF EXISTS {SCHEMA}.auth_event_type;")
