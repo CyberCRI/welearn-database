@@ -12,6 +12,7 @@ from welearn_database.data.models import Base
 from welearn_database.data.models.user_related import (
     AnalyticForm,
     APIKeyManagement,
+    AuthEvent,
     Bookmark,
     ChatMessage,
     DataCollectionCampaignManagement,
@@ -547,3 +548,103 @@ class TestUserRelatedCRUD(TestCase):
             index["column_names"],
             ["inferred_user_id", "feature_id", "action", "created_at"],
         )
+
+    def _add_auth_event(self, user_id, event_type, keycloak_session_id=None):
+        event = AuthEvent(
+            id=uuid.uuid4(),
+            inferred_user_id=user_id,
+            event_type=event_type,
+            is_limited_access=False,
+            keycloak_session_id=keycloak_session_id,
+        )
+        self.session.add(event)
+        return event
+
+    def test_create_and_read_auth_event(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        user_session = UserSession(
+            id=uuid.uuid4(),
+            inferred_user_id=inferred_user.id,
+            end_at=datetime.now() + timedelta(hours=1),
+            host="localhost",
+        )
+        self.session.add(user_session)
+        self.session.commit()
+        event = AuthEvent(
+            id=uuid.uuid4(),
+            inferred_user_id=inferred_user.id,
+            session_id=user_session.id,
+            event_type="login",
+            identity_provider="google",
+            is_limited_access=True,
+            keycloak_session_id="sid-1",
+        )
+        self.session.add(event)
+        self.session.commit()
+        result = self.session.get(AuthEvent, event.id)
+        self.assertEqual(result.event_type, "login")
+        self.assertEqual(result.session.host, "localhost")
+        self.assertEqual(result.inferred_user.id, inferred_user.id)
+        self.assertIsNotNone(result.created_at)
+
+    def test_auth_event_rejects_unknown_type(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        self._add_auth_event(inferred_user.id, "password_reset")
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
+    def test_auth_event_requires_is_limited_access(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        self.session.add(
+            AuthEvent(
+                id=uuid.uuid4(), inferred_user_id=inferred_user.id, event_type="login"
+            )
+        )
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
+    def test_auth_event_one_login_per_keycloak_session(self):
+        inferred_user = InferredUser(id=uuid.uuid4())
+        self.session.add(inferred_user)
+        self.session.commit()
+        self._add_auth_event(inferred_user.id, "login", "sid-1")
+        # other types, or logins without a Keycloak session, can repeat
+        self._add_auth_event(inferred_user.id, "logout", "sid-1")
+        self._add_auth_event(inferred_user.id, "logout", "sid-1")
+        self._add_auth_event(inferred_user.id, "login")
+        self._add_auth_event(inferred_user.id, "login")
+        self.session.commit()
+
+        self._add_auth_event(inferred_user.id, "login", "sid-1")
+        with self.assertRaises(IntegrityError):
+            self.session.commit()
+
+    def test_auth_event_deleted_with_user(self):
+        with self.engine.connect() as conn:
+            conn.exec_driver_sql("PRAGMA foreign_keys=ON")
+            session = sessionmaker(bind=conn)()
+            inferred_user = InferredUser(id=uuid.uuid4())
+            session.add(inferred_user)
+            session.flush()
+            session.add(
+                AuthEvent(
+                    id=uuid.uuid4(),
+                    inferred_user_id=inferred_user.id,
+                    event_type="signup",
+                    is_limited_access=False,
+                )
+            )
+            session.flush()
+
+            session.delete(inferred_user)
+            session.flush()
+            session.expunge_all()
+
+            self.assertEqual(session.query(AuthEvent).count(), 0)
+            session.close()

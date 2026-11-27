@@ -50,3 +50,12 @@ class QuestionType(StrEnum):
     TEXT = auto()
     CHECKBOX = auto()
     PREDEFINED_TEXT = auto()
+
+
+class AuthEventType(StrEnum):
+    # an email account created through WeLearn's sign-up form
+    SIGNUP = auto()
+    # a Keycloak account seen by WeLearn for the first time (first Google, university or email login)
+    ACCOUNT_CREATED = auto()
+    LOGIN = auto()
+    LOGOUT = auto()

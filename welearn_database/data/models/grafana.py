@@ -11,6 +11,62 @@ from welearn_database.data.models import Base
 schema_name = DbSchemaEnum.GRAFANA.value
 
 
+class ActiveUserDay(Base):
+    __tablename__ = "active_user_day"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    day: Mapped[datetime] = mapped_column(primary_key=True)
+    inferred_user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True
+    )
+    user_kind: Mapped[str] = mapped_column()
+    requests: Mapped[int] = mapped_column()
+
+
+class ActiveUsersDaily(Base):
+    __tablename__ = "active_users_daily"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    day: Mapped[datetime] = mapped_column(primary_key=True)
+    user_kind: Mapped[str] = mapped_column(primary_key=True)
+    active_users: Mapped[int] = mapped_column()
+    requests: Mapped[int] = mapped_column()
+
+
+class AuthEvent(Base):
+    __tablename__ = "auth_event"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    inferred_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    session_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True
+    )
+    event_type: Mapped[str] = mapped_column()
+    identity_provider: Mapped[str | None] = mapped_column(nullable=True)
+    is_limited_access: Mapped[bool] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column()
+    host: Mapped[str | None] = mapped_column(nullable=True)
+
+
+class AuthEventDaily(Base):
+    __tablename__ = "auth_event_daily"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    # the view has no id: its grouping columns identify a row
+    day: Mapped[datetime] = mapped_column(primary_key=True)
+    event_type: Mapped[str] = mapped_column(primary_key=True)
+    provider: Mapped[str] = mapped_column(primary_key=True)
+    is_limited_access: Mapped[bool] = mapped_column(primary_key=True)
+    identity_provider: Mapped[str | None] = mapped_column(nullable=True)
+    events: Mapped[int] = mapped_column()
+    users: Mapped[int] = mapped_column()
+
+
 class Corpus(Base):
     __tablename__ = "corpus"
     __table_args__ = {"schema": schema_name}
@@ -61,6 +117,15 @@ class DocumentStateSummary(Base):
     total_documents: Mapped[int] = mapped_column()
 
 
+class EndpointFeature(Base):
+    __tablename__ = "endpoint_feature"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    endpoint_pattern: Mapped[str] = mapped_column(primary_key=True)
+    feature: Mapped[str] = mapped_column()
+
+
 class EndpointRequest(Base):
     __tablename__ = "endpoint_request"
     __table_args__ = {"schema": schema_name}
@@ -74,6 +139,53 @@ class EndpointRequest(Base):
     created_at: Mapped[datetime] = mapped_column()
 
 
+class FeatureRequest(Base):
+    __tablename__ = "feature_request"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    inferred_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    user_kind: Mapped[str] = mapped_column()
+    feature: Mapped[str] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column()
+
+
+class FeatureUsageDaily(Base):
+    __tablename__ = "feature_usage_daily"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    day: Mapped[datetime] = mapped_column(primary_key=True)
+    feature: Mapped[str] = mapped_column(primary_key=True)
+    user_kind: Mapped[str] = mapped_column(primary_key=True)
+    users: Mapped[int] = mapped_column()
+    requests: Mapped[int] = mapped_column()
+
+
+class GuestLimitHit(Base):
+    __tablename__ = "guest_limit_hit"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    inferred_user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    feature: Mapped[str] = mapped_column()
+    created_at: Mapped[datetime] = mapped_column()
+
+
+class GuestLimitHitsDaily(Base):
+    __tablename__ = "guest_limit_hits_daily"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    day: Mapped[datetime] = mapped_column(primary_key=True)
+    feature: Mapped[str] = mapped_column(primary_key=True)
+    users: Mapped[int] = mapped_column()
+    refusals: Mapped[int] = mapped_column()
+
+
 class InferredUser(Base):
     __tablename__ = "inferred_user"
     __table_args__ = {"schema": schema_name}
@@ -81,6 +193,16 @@ class InferredUser(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     created_at: Mapped[datetime] = mapped_column()
+
+
+class NewUsersDaily(Base):
+    __tablename__ = "new_users_daily"
+    __table_args__ = {"schema": schema_name}
+    __read_only__ = True
+
+    day: Mapped[datetime] = mapped_column(primary_key=True)
+    new_users: Mapped[int] = mapped_column()
+    with_account: Mapped[int] = mapped_column()
 
 
 class ProcessState(Base):

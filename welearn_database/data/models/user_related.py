@@ -5,7 +5,12 @@ from sqlalchemy import Computed, ForeignKey, Index, func, text, types
 from sqlalchemy.dialects.postgresql import ENUM, TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from welearn_database.data.enumeration import DbSchemaEnum, FilterType, QuestionType
+from welearn_database.data.enumeration import (
+    AuthEventType,
+    DbSchemaEnum,
+    FilterType,
+    QuestionType,
+)
 from welearn_database.data.models.document_related import WeLearnDocument
 
 from . import Base
@@ -440,3 +445,78 @@ class GuestFeatureUsage(Base):
     )
     inferred_user: Mapped["InferredUser"] = relationship()
     feature: Mapped["Feature"] = relationship()
+
+
+# the API records one login per Keycloak session; this filter lets a concurrent
+# second insert of the same login fail on the unique index instead of duplicating it
+_ONE_LOGIN_PER_KEYCLOAK_SESSION = text(
+    "event_type = 'login' AND keycloak_session_id IS NOT NULL"
+)
+
+
+class AuthEvent(Base):
+    """
+    An authentication event of a user: a sign-up through WeLearn's form, an
+    account seen for the first time, a login or a logout. The user is only
+    known by its pseudonymous inferred_user id: no email or name is stored.
+    identity_provider is the Keycloak IdP alias (google, a university...), NULL
+    for email/password or when unknown.
+    """
+
+    __tablename__ = "auth_event"
+    __table_args__ = (
+        Index("auth_event_created_at_idx", "created_at"),
+        Index("auth_event_event_type_created_at_idx", "event_type", "created_at"),
+        Index(
+            "auth_event_login_keycloak_session_key",
+            "inferred_user_id",
+            "keycloak_session_id",
+            unique=True,
+            postgresql_where=_ONE_LOGIN_PER_KEYCLOAK_SESSION,
+            sqlite_where=_ONE_LOGIN_PER_KEYCLOAK_SESSION,
+        ),
+        {"schema": DbSchemaEnum.USER_RELATED.value},
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        types.Uuid, primary_key=True, nullable=False, server_default="gen_random_uuid()"
+    )
+    inferred_user_id: Mapped[UUID] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.USER_RELATED.value}.inferred_user.id",
+            name="auth_event_inferred_user_id_fkey",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
+    session_id: Mapped[UUID | None] = mapped_column(
+        types.Uuid,
+        ForeignKey(
+            f"{DbSchemaEnum.USER_RELATED.value}.session.id",
+            name="auth_event_session_id_fkey",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+    )
+    event_type: Mapped[str] = mapped_column(
+        ENUM(
+            *(e.value for e in AuthEventType),
+            name="auth_event_type",
+            schema=DbSchemaEnum.USER_RELATED.value,
+            # SQLite has no enum type: a CHECK keeps the same rule in the tests
+            create_constraint=True,
+        ),
+        nullable=False,
+    )
+    identity_provider: Mapped[str | None]
+    is_limited_access: Mapped[bool]
+    keycloak_session_id: Mapped[str | None]
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=False),
+        nullable=False,
+        default=func.localtimestamp(),
+        server_default="NOW()",
+    )
+    inferred_user: Mapped["InferredUser"] = relationship()
+    session: Mapped["Session | None"] = relationship()
